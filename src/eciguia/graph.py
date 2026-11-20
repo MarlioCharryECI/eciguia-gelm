@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import re
@@ -25,6 +26,7 @@ from eciguia.retriever import Hit, Retriever, format_context
 
 Route = Literal["documentos", "herramienta", "fuera_de_alcance"]
 SRC_DIR = Path(__file__).resolve().parents[1]
+PERIOD_HINT = re.compile(r"20\d\d|intersemestral", re.IGNORECASE)
 
 
 def stdio_transport() -> StdioTransport:
@@ -62,13 +64,14 @@ def _text(message) -> str:
     return message.content if hasattr(message, "content") else str(message)
 
 
-def default_llm(json_mode: bool = False):
+def default_llm(json_mode: bool = False, model: str | None = None):
     from langchain_ollama import ChatOllama
 
     return ChatOllama(
-        model=config.LLM_MODEL,
+        model=model or config.LLM_MODEL,
         base_url=config.OLLAMA_BASE_URL,
         temperature=0,
+        keep_alive=config.KEEP_ALIVE,
         format="json" if json_mode else None,
     )
 
@@ -77,15 +80,32 @@ class EciGuiaAgent:
     """Envuelve el grafo. Recibe el LLM, el retriever y el destino MCP para poder probarlo con dobles."""
 
     def __init__(self, llm=None, json_llm=None, retriever: Retriever | None = None, mcp_target=None,
-                 rag_prompt: str = prompts.RAG_ANSWER, use_router: bool = True):
+                 rag_prompt: str = prompts.RAG_ANSWER, router_prompt: str = prompts.ROUTER, use_router: bool = True):
         self.llm = llm or default_llm()
         self.json_llm = json_llm or (default_llm(json_mode=True) if llm is None else llm)
         self.retriever = retriever or Retriever()
         # Por defecto el servidor MCP corre como subproceso (stdio). En pruebas se pasa la instancia en memoria.
         self.mcp_target = mcp_target
         self.rag_prompt = rag_prompt
+        self.router_prompt = router_prompt
         self.use_router = use_router  # False = línea base: todo va directo al RAG
+        self._mcp: tuple | None = None  # (cliente, event loop, catálogo de herramientas)
         self.graph = self._build()
+
+    async def _mcp_session(self) -> tuple[Client, str]:
+        """Conexión MCP que se abre una vez y se reutiliza: lanzar el servidor en cada pregunta costaba ~5 s.
+        Si cambia el event loop (cada asyncio.run de las pruebas), se abre una nueva."""
+        loop = asyncio.get_running_loop()
+        if self._mcp is None or self._mcp[1] is not loop:
+            client = Client(self.mcp_target or stdio_transport())
+            await client.__aenter__()
+            tools = await client.list_tools()
+            catalog = "\n".join(
+                f"- {t.name}: {t.description.strip()}\n  argumentos: {json.dumps((getattr(t, 'input_schema', None) or t.inputSchema).get('properties', {}), ensure_ascii=False)}"
+                for t in tools
+            )
+            self._mcp = (client, loop, catalog)
+        return self._mcp[0], self._mcp[2]
 
     # ------------------------------------------------------------ nodos
 
@@ -93,7 +113,7 @@ class EciGuiaAgent:
         if not self.use_router:
             return {"route": "documentos", "route_reason": "sin router (línea base)"}
         try:
-            reply = await self.json_llm.ainvoke(prompts.ROUTER.format(question=state["question"]))
+            reply = await self.json_llm.ainvoke(self.router_prompt.format(question=state["question"]))
             data = _parse_json(_text(reply))
             route = data.get("ruta", "documentos")
             if route not in ("documentos", "herramienta", "fuera_de_alcance"):
@@ -109,28 +129,32 @@ class EciGuiaAgent:
         hits = state["hits"]
         prompt = self.rag_prompt.format(context=format_context(hits), question=state["question"])
         reply = await self.llm.ainvoke(prompt)
-        return {"answer": _text(reply).strip(), "sources": [f"[{i}] {h.citation}" for i, h in enumerate(hits, 1)]}
+        answer = _text(reply).strip()
+        if answer.startswith("No encontré"):  # el modelo no usó el contexto: citar fuentes confundiría
+            return {"answer": answer, "sources": []}
+        return {"answer": answer, "sources": [f"[{i}] {h.citation}" for i, h in enumerate(hits, 1)]}
 
     async def no_info(self, state: AgentState) -> AgentState:
         return {"answer": prompts.NO_INFO, "sources": []}
 
     async def use_tool(self, state: AgentState) -> AgentState:
         try:
-            async with Client(self.mcp_target or stdio_transport()) as client:
-                tools = await client.list_tools()
-                catalog = "\n".join(
-                    f"- {t.name}: {t.description.strip()}\n  argumentos: {json.dumps((getattr(t, 'input_schema', None) or t.inputSchema).get('properties', {}), ensure_ascii=False)}"
-                    for t in tools
-                )
-                reply = await self.json_llm.ainvoke(
-                    prompts.TOOL_SELECTION.format(today=_today(), tools=catalog, question=state["question"])
-                )
-                choice = _parse_json(_text(reply))
-                name, args = choice["herramienta"], choice.get("argumentos", {})
-                result = await client.call_tool(name, args)
-                data = result.data if result.data is not None else [c.text for c in result.content if hasattr(c, "text")]
+            client, catalog = await self._mcp_session()
+            reply = await self.json_llm.ainvoke(
+                prompts.TOOL_SELECTION.format(today=_today(), tools=catalog, question=state["question"])
+            )
+            choice = _parse_json(_text(reply))
+            name, args = choice["herramienta"], choice.get("argumentos", {})
+            if name == "consultar_calendario" and not PERIOD_HINT.search(state["question"]):
+                # El modelo tiende a suponer un periodo (p. ej. 2027-1) aunque la pregunta no lo diga, y eso
+                # esconde el evento vigente. Sin periodo, la herramienta devuelve todos y se elige el más próximo.
+                args.pop("periodo", None)
+            result = await client.call_tool(name, args)
+            data = result.data if result.data is not None else [c.text for c in result.content if hasattr(c, "text")]
             return {"tool_name": name, "tool_args": args, "tool_result": data}
         except Exception as exc:
+            if not getattr(self._mcp and self._mcp[0], "is_connected", lambda: True)():
+                self._mcp = None  # la conexión se cayó: la próxima pregunta abre una nueva
             return {"error": f"Error usando la herramienta: {exc}", "tool_result": None, "tool_name": "ninguna"}
 
     async def answer_from_tool(self, state: AgentState) -> AgentState:
@@ -183,12 +207,16 @@ class EciGuiaAgent:
 
 def main() -> None:
     """Prueba rápida desde la terminal: uv run python -m eciguia.graph "tu pregunta"."""
-    import asyncio
-    import sys
-
     question = " ".join(sys.argv[1:]) or "¿Cuántos créditos debo tener aprobados para hacer la práctica?"
     state = asyncio.run(EciGuiaAgent().ask(question))
     print(f"Ruta: {state['route']} ({state.get('route_reason', '')})")
+    if state.get("tool_name"):
+        print(f"Herramienta: {state['tool_name']} {json.dumps(state.get('tool_args', {}), ensure_ascii=False)}")
+    if state.get("hits"):
+        print("Distancias: " + ", ".join(f"{h.distance:.3f}" for h in state["hits"]))
+    if state.get("error"):
+        print(f"Error: {state['error']}")
+    print(f"Latencia: {state['latency_s']} s\n")
     print(state["answer"])
     for source in state.get("sources", []):
         print("  ", source)

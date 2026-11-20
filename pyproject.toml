@@ -21,6 +21,11 @@ dependencies = [
 dev = [
     "pytest>=9.0",
     "scikit-learn>=1.5",
+    "matplotlib>=3.9",
+    "pandas>=2.2",
+    "jupyterlab>=4.2",
+    "ipykernel>=6.29",
+    "nbconvert>=7.16",
 ]
 
 [build-system]

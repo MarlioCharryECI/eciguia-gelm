@@ -31,9 +31,12 @@ class Retriever:
 
             store = Chroma(
                 collection_name=collection_name(strategy),
-                embedding_function=get_embeddings(),
+                embedding_function=get_embeddings(for_query=True),
                 persist_directory=str(config.CHROMA_DIR),
             )
+            if store._collection.count() == 0:
+                raise RuntimeError(f"El índice '{collection_name(strategy)}' está vacío. "
+                                   f"Constrúyelo con: uv run python -m eciguia.ingest --strategy {strategy}")
         self.store = store
         self.k = k
         self.max_distance = max_distance

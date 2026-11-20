@@ -1,0 +1,529 @@
+{
+  "estrategia": "fijo",
+  "curva": [
+    {
+      "umbral": 0.3,
+      "positivas_que_pasan": 0.48,
+      "negativas_bloqueadas": 1.0
+    },
+    {
+      "umbral": 0.31,
+      "positivas_que_pasan": 0.52,
+      "negativas_bloqueadas": 1.0
+    },
+    {
+      "umbral": 0.32,
+      "positivas_que_pasan": 0.56,
+      "negativas_bloqueadas": 1.0
+    },
+    {
+      "umbral": 0.33,
+      "positivas_que_pasan": 0.6,
+      "negativas_bloqueadas": 1.0
+    },
+    {
+      "umbral": 0.34,
+      "positivas_que_pasan": 0.6,
+      "negativas_bloqueadas": 1.0
+    },
+    {
+      "umbral": 0.35,
+      "positivas_que_pasan": 0.72,
+      "negativas_bloqueadas": 1.0
+    },
+    {
+      "umbral": 0.36,
+      "positivas_que_pasan": 0.72,
+      "negativas_bloqueadas": 1.0
+    },
+    {
+      "umbral": 0.37,
+      "positivas_que_pasan": 0.76,
+      "negativas_bloqueadas": 0.963
+    },
+    {
+      "umbral": 0.38,
+      "positivas_que_pasan": 0.8,
+      "negativas_bloqueadas": 0.926
+    },
+    {
+      "umbral": 0.39,
+      "positivas_que_pasan": 0.88,
+      "negativas_bloqueadas": 0.926
+    },
+    {
+      "umbral": 0.4,
+      "positivas_que_pasan": 0.88,
+      "negativas_bloqueadas": 0.926
+    },
+    {
+      "umbral": 0.41,
+      "positivas_que_pasan": 0.88,
+      "negativas_bloqueadas": 0.889
+    },
+    {
+      "umbral": 0.42,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.889
+    },
+    {
+      "umbral": 0.43,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.815
+    },
+    {
+      "umbral": 0.44,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.815
+    },
+    {
+      "umbral": 0.45,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.741
+    },
+    {
+      "umbral": 0.46,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.704
+    },
+    {
+      "umbral": 0.47,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.704
+    },
+    {
+      "umbral": 0.48,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.704
+    },
+    {
+      "umbral": 0.49,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.667
+    },
+    {
+      "umbral": 0.5,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.556
+    },
+    {
+      "umbral": 0.51,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.519
+    },
+    {
+      "umbral": 0.52,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.407
+    },
+    {
+      "umbral": 0.53,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.407
+    },
+    {
+      "umbral": 0.54,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.407
+    },
+    {
+      "umbral": 0.55,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.333
+    },
+    {
+      "umbral": 0.56,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.222
+    },
+    {
+      "umbral": 0.57,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.185
+    },
+    {
+      "umbral": 0.58,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.185
+    },
+    {
+      "umbral": 0.59,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.185
+    },
+    {
+      "umbral": 0.6,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.111
+    },
+    {
+      "umbral": 0.61,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.111
+    },
+    {
+      "umbral": 0.62,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.111
+    },
+    {
+      "umbral": 0.63,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.111
+    },
+    {
+      "umbral": 0.64,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.074
+    },
+    {
+      "umbral": 0.65,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.074
+    },
+    {
+      "umbral": 0.66,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.074
+    },
+    {
+      "umbral": 0.67,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.037
+    },
+    {
+      "umbral": 0.68,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.0
+    },
+    {
+      "umbral": 0.69,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.0
+    },
+    {
+      "umbral": 0.7,
+      "positivas_que_pasan": 1.0,
+      "negativas_bloqueadas": 0.0
+    }
+  ],
+  "umbral": 0.44,
+  "positivas_que_pasan": 1.0,
+  "negativas_bloqueadas": 0.8148148148148148,
+  "umbral_anterior": 0.65,
+  "negativas_bloqueadas_umbral_anterior": 0.07407407407407407,
+  "preguntas": [
+    {
+      "id": "d01",
+      "grupo": "positiva",
+      "pregunta": "¿Qué porcentaje de créditos debo tener aprobado para acceder a las prácticas profesionales?",
+      "distancia": 0.3054
+    },
+    {
+      "id": "d02",
+      "grupo": "positiva",
+      "pregunta": "¿Qué seminario es requisito para poder hacer la práctica?",
+      "distancia": 0.4149
+    },
+    {
+      "id": "d03",
+      "grupo": "positiva",
+      "pregunta": "¿Cuánto dura la práctica profesional en Colombia?",
+      "distancia": 0.1935
+    },
+    {
+      "id": "d04",
+      "grupo": "positiva",
+      "pregunta": "¿Cuál es la duración máxima de una práctica internacional?",
+      "distancia": 0.2325
+    },
+    {
+      "id": "d05",
+      "grupo": "positiva",
+      "pregunta": "¿Qué modalidades de práctica profesional existen?",
+      "distancia": 0.3838
+    },
+    {
+      "id": "d06",
+      "grupo": "positiva",
+      "pregunta": "¿Puedo hacer la práctica docente en otra universidad?",
+      "distancia": 0.4127
+    },
+    {
+      "id": "d07",
+      "grupo": "positiva",
+      "pregunta": "¿Puedo inscribir materias mientras hago la práctica?",
+      "distancia": 0.346
+    },
+    {
+      "id": "d08",
+      "grupo": "positiva",
+      "pregunta": "¿Cuánto de la matrícula tengo que pagar durante la práctica profesional?",
+      "distancia": 0.2604
+    },
+    {
+      "id": "d09",
+      "grupo": "positiva",
+      "pregunta": "¿Hay algún descuento en la matrícula si hago la práctica en el exterior?",
+      "distancia": 0.3743
+    },
+    {
+      "id": "d10",
+      "grupo": "positiva",
+      "pregunta": "¿La práctica profesional puede ser de medio tiempo?",
+      "distancia": 0.364
+    },
+    {
+      "id": "d11",
+      "grupo": "positiva",
+      "pregunta": "¿Quién paga la afiliación a riesgos laborales durante la práctica?",
+      "distancia": 0.3136
+    },
+    {
+      "id": "d12",
+      "grupo": "positiva",
+      "pregunta": "Si ya acepté una oferta de práctica, ¿puedo echarme para atrás?",
+      "distancia": 0.3869
+    },
+    {
+      "id": "d13",
+      "grupo": "positiva",
+      "pregunta": "¿Cuántos créditos tiene la opción de grado?",
+      "distancia": 0.2881
+    },
+    {
+      "id": "d14",
+      "grupo": "positiva",
+      "pregunta": "¿Cuántos créditos vale un trabajo dirigido?",
+      "distancia": 0.321
+    },
+    {
+      "id": "d15",
+      "grupo": "positiva",
+      "pregunta": "¿Cuántos estudiantes pueden hacer un mismo trabajo dirigido?",
+      "distancia": 0.2747
+    },
+    {
+      "id": "d16",
+      "grupo": "positiva",
+      "pregunta": "¿Cuántos trabajos dirigidos puedo hacer en toda la carrera?",
+      "distancia": 0.2606
+    },
+    {
+      "id": "d17",
+      "grupo": "positiva",
+      "pregunta": "¿Cuánto dura un trabajo dirigido y se puede extender?",
+      "distancia": 0.2626
+    },
+    {
+      "id": "d18",
+      "grupo": "positiva",
+      "pregunta": "¿Quiénes forman el jurado de la sustentación del trabajo dirigido?",
+      "distancia": 0.4147
+    },
+    {
+      "id": "d19",
+      "grupo": "positiva",
+      "pregunta": "¿Hasta cuándo tengo para entregar el resultado final del trabajo dirigido?",
+      "distancia": 0.2232
+    },
+    {
+      "id": "d20",
+      "grupo": "positiva",
+      "pregunta": "¿Antes de qué porcentaje de la carrera debo acreditar el inglés?",
+      "distancia": 0.2876
+    },
+    {
+      "id": "d21",
+      "grupo": "positiva",
+      "pregunta": "¿Qué opciones tengo para acreditar el requisito de inglés?",
+      "distancia": 0.2289
+    },
+    {
+      "id": "d22",
+      "grupo": "positiva",
+      "pregunta": "¿Qué tan viejo puede ser mi certificado de IELTS para el requisito de inglés?",
+      "distancia": 0.3477
+    },
+    {
+      "id": "d23",
+      "grupo": "positiva",
+      "pregunta": "¿Qué requisitos debo cumplir para irme de intercambio a otro país?",
+      "distancia": 0.3475
+    },
+    {
+      "id": "d24",
+      "grupo": "positiva",
+      "pregunta": "¿Cuánto de la matrícula pago en la Escuela si me voy de intercambio internacional?",
+      "distancia": 0.2663
+    },
+    {
+      "id": "d25",
+      "grupo": "positiva",
+      "pregunta": "¿Cuántas veces puedo pedir examen de validación de una misma asignatura?",
+      "distancia": 0.2774
+    },
+    {
+      "id": "f01",
+      "grupo": "negativa",
+      "pregunta": "¿Me recomiendas una película para el fin de semana?",
+      "distancia": 0.67
+    },
+    {
+      "id": "f02",
+      "grupo": "negativa",
+      "pregunta": "¿Cuánto cuesta la matrícula de ingeniería en la Universidad de los Andes?",
+      "distancia": 0.5
+    },
+    {
+      "id": "f03",
+      "grupo": "negativa",
+      "pregunta": "Escríbeme una función en Python que ordene una lista.",
+      "distancia": 0.638
+    },
+    {
+      "id": "f04",
+      "grupo": "negativa",
+      "pregunta": "¿Cuál es el número de celular del decano de sistemas?",
+      "distancia": 0.5429
+    },
+    {
+      "id": "f05",
+      "grupo": "negativa",
+      "pregunta": "¿Quién va a ganar la Champions este año?",
+      "distancia": 0.6748
+    },
+    {
+      "id": "f06",
+      "grupo": "negativa",
+      "pregunta": "¿Cuál es el horario de la cafetería de la Escuela?",
+      "distancia": 0.5988
+    },
+    {
+      "id": "f07",
+      "grupo": "negativa",
+      "pregunta": "¿Cuántas faltas de asistencia se permiten antes de perder una materia?",
+      "distancia": 0.4413
+    },
+    {
+      "id": "n01",
+      "grupo": "negativa",
+      "pregunta": "¿Cuál es el horario de la biblioteca de la Escuela?",
+      "distancia": 0.5587
+    },
+    {
+      "id": "n02",
+      "grupo": "negativa",
+      "pregunta": "¿Cuál es la nota mínima para aprobar una asignatura?",
+      "distancia": 0.4238
+    },
+    {
+      "id": "n03",
+      "grupo": "negativa",
+      "pregunta": "¿Cuánto cuesta el semestre de ingeniería de sistemas?",
+      "distancia": 0.5003
+    },
+    {
+      "id": "n04",
+      "grupo": "negativa",
+      "pregunta": "¿Dónde puedo parquear la moto dentro del campus?",
+      "distancia": 0.5187
+    },
+    {
+      "id": "n05",
+      "grupo": "negativa",
+      "pregunta": "¿Cómo saco el carné estudiantil si lo perdí?",
+      "distancia": 0.4416
+    },
+    {
+      "id": "n06",
+      "grupo": "negativa",
+      "pregunta": "¿Quién es el rector de la Escuela?",
+      "distancia": 0.5541
+    },
+    {
+      "id": "n07",
+      "grupo": "negativa",
+      "pregunta": "¿Cuántos créditos tiene en total el plan de estudios de ingeniería civil?",
+      "distancia": 0.4212
+    },
+    {
+      "id": "n08",
+      "grupo": "negativa",
+      "pregunta": "¿Qué pasa si me copio en un parcial?",
+      "distancia": 0.4897
+    },
+    {
+      "id": "n09",
+      "grupo": "negativa",
+      "pregunta": "¿Cómo me conecto al wifi de la universidad?",
+      "distancia": 0.5147
+    },
+    {
+      "id": "n10",
+      "grupo": "negativa",
+      "pregunta": "¿La Escuela tiene servicio de psicología para estudiantes?",
+      "distancia": 0.5175
+    },
+    {
+      "id": "n11",
+      "grupo": "negativa",
+      "pregunta": "¿Qué selecciones deportivas hay en la Escuela?",
+      "distancia": 0.5918
+    },
+    {
+      "id": "n12",
+      "grupo": "negativa",
+      "pregunta": "¿Cuántas veces puedo perder la misma materia antes de quedar por fuera?",
+      "distancia": 0.4972
+    },
+    {
+      "id": "n13",
+      "grupo": "negativa",
+      "pregunta": "¿Cómo pido un certificado de notas?",
+      "distancia": 0.4027
+    },
+    {
+      "id": "n14",
+      "grupo": "negativa",
+      "pregunta": "¿Puedo pagar la matrícula con tarjeta de crédito?",
+      "distancia": 0.3627
+    },
+    {
+      "id": "n15",
+      "grupo": "negativa",
+      "pregunta": "¿Qué ruta de bus llega a la Escuela desde el centro de Bogotá?",
+      "distancia": 0.5655
+    },
+    {
+      "id": "n16",
+      "grupo": "negativa",
+      "pregunta": "¿Cuál es el correo de admisiones?",
+      "distancia": 0.4928
+    },
+    {
+      "id": "n17",
+      "grupo": "negativa",
+      "pregunta": "¿Cuándo abren inscripciones para la maestría en ciencia de datos?",
+      "distancia": 0.5574
+    },
+    {
+      "id": "n18",
+      "grupo": "negativa",
+      "pregunta": "¿Qué requisitos tiene la beca de monitoría?",
+      "distancia": 0.4501
+    },
+    {
+      "id": "n19",
+      "grupo": "negativa",
+      "pregunta": "¿Se puede llevar mascota al campus?",
+      "distancia": 0.5481
+    },
+    {
+      "id": "n20",
+      "grupo": "negativa",
+      "pregunta": "¿Cómo funciona el periodo de prueba académica?",
+      "distancia": 0.3753
+    }
+  ]
+}

@@ -32,12 +32,25 @@ def load_calendar() -> list[dict]:
         return json.load(file)["eventos"]
 
 
-def consultar_calendario(consulta: str, periodo: str | None = None, max_resultados: int = 5) -> list[dict]:
+def _status(inicio: str, fin: str, today: date) -> dict:
+    """Días que faltan para el evento y si ya pasó, para responder "¿cuánto falta?" sin otra herramienta."""
+    start, end = date.fromisoformat(inicio), date.fromisoformat(fin)
+    if end < today:
+        return {"estado": "ya pasó", "dias_para_inicio": (start - today).days}
+    if start <= today:
+        return {"estado": "en curso", "dias_para_inicio": 0}
+    return {"estado": "próximo", "dias_para_inicio": (start - today).days}
+
+
+def consultar_calendario(consulta: str, periodo: str | None = None, max_resultados: int = 5,
+                         hoy: str | None = None) -> list[dict]:
     """Busca eventos del calendario académico 2027 por palabras clave.
 
     consulta: palabras del evento, por ejemplo "cancelación de asignaturas" o "exámenes finales".
     periodo: opcional, uno de "2026-2", "2027-1", "2027-i", "2027-2", "2028-1".
+    hoy: fecha AAAA-MM-DD contra la que se calculan los días que faltan (por defecto, hoy).
     """
+    today = date.fromisoformat(hoy) if hoy else date.today()
     words = [w for w in _normalize(consulta).replace("?", " ").split() if w not in STOPWORDS and len(w) > 2]
     results = []
     for event in load_calendar():
@@ -48,7 +61,8 @@ def consultar_calendario(consulta: str, periodo: str | None = None, max_resultad
         score = sum(1 for w in words if w[:5] in name)
         if score:
             results.append((score, event))
-    results.sort(key=lambda item: (-item[0], item[1]["inicio"]))
+    # Primero los más relevantes; entre ellos, los vigentes o próximos antes que los que ya pasaron
+    results.sort(key=lambda item: (-item[0], item[1]["fin"] < today.isoformat(), item[1]["inicio"]))
     best = results[0][0] if results else 0
     return [
         {
@@ -56,6 +70,7 @@ def consultar_calendario(consulta: str, periodo: str | None = None, max_resultad
             "periodo": e["periodo"],
             "inicio": _human_date(e["inicio"]),
             "fin": _human_date(e["fin"]),
+            **_status(e["inicio"], e["fin"], today),
         }
         for score, e in results[:max_resultados]
         if score == best or score >= 2

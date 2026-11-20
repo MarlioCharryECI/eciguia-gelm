@@ -1,10 +1,11 @@
 """Evalúa EciGuía contra el set de 40 preguntas con respuesta conocida.
 
-Ejemplos:
-    uv run python eval/run_eval.py --name base --baseline --prompt basico      # experimento 1
-    uv run python eval/run_eval.py --name fijo --strategy fijo                 # experimento 2a
-    uv run python eval/run_eval.py --name articulo --strategy articulo         # experimento 2b
-    uv run python eval/run_eval.py --name final                                # sistema completo
+Experimentos del proyecto (cada uno cambia una sola cosa respecto al anterior):
+    uv run python eval/run_eval.py --name 1_base --baseline --prompt basico --strategy fijo
+    uv run python eval/run_eval.py --name 2_chunk_articulo --baseline --prompt basico
+    uv run python eval/run_eval.py --name 3_router_tools --prompt basico
+    uv run python eval/run_eval.py --name 4_prompt_v1 --prompt v1
+    uv run python eval/run_eval.py --name 5_final                     # prompt v2, el que usa la app
 
 Cada corrida guarda eval/results/<name>.csv (detalle) y eval/results/<name>.json (resumen).
 """
@@ -19,7 +20,7 @@ import statistics
 from pathlib import Path
 
 from eciguia import prompts
-from eciguia.graph import EciGuiaAgent, _parse_json, _text
+from eciguia.graph import EciGuiaAgent, _parse_json, _text, default_llm
 from eciguia.retriever import Retriever, format_context
 
 EVAL_DIR = Path(__file__).parent
@@ -44,13 +45,20 @@ def load_golden() -> list[dict]:
         return [json.loads(line) for line in file if line.strip()]
 
 
-def retrieval_hit(retriever: Retriever, item: dict) -> bool:
-    """¿Aparece el fragmento correcto (documento y artículo) entre los recuperados?"""
-    for hit in retriever.search(item["pregunta"]):
-        meta = hit.doc.metadata
-        if meta["source"] == item["fuente"] and meta["section"].startswith(item.get("seccion", "")):
-            return True
-    return False
+def _is_expected(meta: dict, item: dict) -> bool:
+    section = item.get("seccion", "")
+    # "Artículo 1" no debe aceptar "Artículo 10. ...": se compara hasta el punto
+    return meta["source"] == item["fuente"] and (not section or meta["section"].split(".")[0] == section)
+
+
+def retrieval_metrics(retriever: Retriever, item: dict) -> dict:
+    """¿Aparece el fragmento correcto (documento y artículo) entre los k recuperados?
+    Se mide antes y después del umbral, para separar la calidad del retriever del efecto del filtro."""
+    raw = retriever.store.similarity_search_with_score(item["pregunta"], k=retriever.k)
+    return {
+        "hit_retriever": any(_is_expected(doc.metadata, item) for doc, _ in raw),
+        "hit_con_umbral": any(_is_expected(doc.metadata, item) for doc, d in raw if d <= retriever.max_distance),
+    }
 
 
 async def judge(llm, item: dict, state: dict) -> dict:
@@ -66,8 +74,9 @@ async def judge(llm, item: dict, state: dict) -> dict:
 
 async def run(args) -> None:
     retriever = Retriever(strategy=args.strategy)
-    rag_prompt = prompts.RAG_ANSWER_BASICO if args.prompt == "basico" else prompts.RAG_ANSWER
-    agent = EciGuiaAgent(retriever=retriever, rag_prompt=rag_prompt, use_router=not args.baseline)
+    agent = EciGuiaAgent(retriever=retriever, rag_prompt=prompts.RAG_PROMPTS[args.prompt],
+                         router_prompt=prompts.ROUTER_PROMPTS[args.router], use_router=not args.baseline)
+    judge_llm = default_llm(json_mode=True, model=args.judge_model) if args.judge_model else agent.json_llm
     rows = []
 
     for item in load_golden():
@@ -84,15 +93,17 @@ async def run(args) -> None:
             "respuesta": state["answer"],
             "fuentes": " | ".join(state.get("sources", [])),
             "latencia_s": state["latency_s"],
+            "distancias": " ".join(f"{h.distance:.3f}" for h in state.get("hits", [])),
+            "error": state.get("error", ""),
         }
         if item["tipo"] == "documentos":
-            row["hit_retriever"] = retrieval_hit(retriever, item)
+            row.update(retrieval_metrics(retriever, item))
         if item["tipo"] == "herramienta":
             row["herramienta_correcta"] = state.get("tool_name") == item["herramienta"]
         if item["tipo"] in ("fuera_de_alcance", "trampa"):
             row["rechazo_correcto"] = any(m in state["answer"] for m in REJECTION_MARKERS)
         if args.judge and item["tipo"] in ("documentos", "herramienta"):
-            verdict = await judge(agent.json_llm, item, state)
+            verdict = await judge(judge_llm, item, state)
             row["correcta"] = verdict.get("correcta")
             row["fiel"] = verdict.get("fiel")
             row["comentario_juez"] = verdict.get("comentario", "")
@@ -119,9 +130,11 @@ def rate(rows: list[dict], key: str) -> float | None:
 def summarize(rows: list[dict], args) -> dict:
     return {
         "corrida": args.name,
-        "config": {"chunking": args.strategy, "prompt": args.prompt, "router": not args.baseline},
+        "config": {"chunking": args.strategy, "prompt": args.prompt,
+                   "router": None if args.baseline else args.router, "juez": args.judge_model or "mismo LLM"},
         "n": len(rows),
         "hit@k_retriever": rate(rows, "hit_retriever"),
+        "hit@k_con_umbral": rate(rows, "hit_con_umbral"),
         "ruteo_correcto": rate(rows, "ruta_correcta"),
         "herramienta_correcta": rate(rows, "herramienta_correcta"),
         "rechazo_correcto": rate(rows, "rechazo_correcto"),
@@ -135,9 +148,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--name", default="final")
     parser.add_argument("--strategy", default="articulo", choices=["articulo", "fijo"])
-    parser.add_argument("--prompt", default="reglas", choices=["reglas", "basico"])
+    parser.add_argument("--prompt", default="v2", choices=list(prompts.RAG_PROMPTS), help="versión del prompt RAG")
+    parser.add_argument("--router", default="v1", choices=list(prompts.ROUTER_PROMPTS), help="versión del prompt del router")
     parser.add_argument("--baseline", action="store_true", help="sin router ni herramientas: todo va al RAG")
     parser.add_argument("--no-judge", dest="judge", action="store_false", help="no usar LLM como juez")
+    parser.add_argument("--judge-model", default=None, help="modelo de Ollama para el juez (por defecto, el mismo que responde)")
     asyncio.run(run(parser.parse_args()))
 
 

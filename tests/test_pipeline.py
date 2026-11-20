@@ -49,6 +49,12 @@ def test_article_chunks_keep_section(pages):
     assert any(s.startswith("Artículo 12. Duración de la práctica") for s in sections)
 
 
+def test_section_is_only_the_bold_title(pages):
+    docs = chunk_documents(pages, "articulo")
+    sections = {d.metadata["section"] for d in docs if d.metadata["source"] == "reglamento_practicas_profesionales.pdf"}
+    assert "Artículo 10. Requisitos para solicitar el acceso al programa de prácticas profesionales" in sections
+
+
 def test_modification_keeps_only_new_version(pages):
     docs = [d for d in chunk_documents(pages, "articulo") if d.metadata["source"].startswith("modificacion")]
     text = " ".join(d.page_content for d in docs)
@@ -58,6 +64,22 @@ def test_modification_keeps_only_new_version(pages):
 def test_calendar_lookup():
     result = tools_logic.consultar_calendario("cancelación de asignaturas", "2027-1")
     assert result[0]["fin"] == "8 de mayo de 2027"
+
+
+def test_calendar_reports_days_left():
+    result = tools_logic.consultar_calendario("cancelación de asignaturas", "2027-1", hoy="2027-05-01")
+    assert result[0]["estado"] == "próximo"
+    assert result[0]["dias_para_inicio"] == 7
+    past = tools_logic.consultar_calendario("cancelación de asignaturas", "2027-1", hoy="2027-06-01")
+    assert past[0]["estado"] == "ya pasó"
+
+
+def test_calendar_without_period_puts_upcoming_first():
+    result = tools_logic.consultar_calendario("cancelación de semestre", hoy="2026-11-20")
+    assert result[0]["periodo"] == "2026-2"
+    assert result[0]["fin"] == "21 de noviembre de 2026"
+    later = tools_logic.consultar_calendario("cancelación de semestre", hoy="2026-12-01")
+    assert later[0]["periodo"] == "2027-1"
 
 
 def test_weighted_average():

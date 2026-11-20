@@ -25,7 +25,8 @@ class Asignatura(BaseModel):
 def consultar_calendario(consulta: str, periodo: str | None = None) -> list[dict]:
     """Busca fechas en el calendario académico 2027 de la Escuela (preinscripción, pagos de matrícula,
     horarios, inicio de clases, cancelación de asignaturas o semestre, exámenes finales, vacaciones,
-    grados, envío de práctica profesional, becas).
+    grados, envío de práctica profesional, becas). Cada evento trae su estado (ya pasó, en curso,
+    próximo) y los días que faltan para que empiece.
 
     consulta: palabras clave del evento, por ejemplo "cancelación de asignaturas".
     periodo: opcional, uno de "2026-2", "2027-1", "2027-i" (intersemestral), "2027-2", "2028-1".

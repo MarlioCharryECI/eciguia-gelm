@@ -69,12 +69,40 @@ def _clean(text: str) -> str:
     return text.strip()
 
 
+def _article_titles(page: pdfplumber.page.Page) -> list[str]:
+    """Títulos de artículo, que en los reglamentos van en negrita: 'Artículo 10. Requisitos para ...'."""
+    words = page.extract_words(extra_attrs=["fontname"])
+    titles = []
+    for i, word in enumerate(words):
+        if not (re.match(r"Art[ií]culo$", word["text"]) and "Bold" in word["fontname"]):
+            continue
+        title = []
+        for w in words[i:i + 30]:
+            if title and re.fullmatch(r"[\.:]", w["text"]):  # a veces el punto de "Artículo 12." no va en negrita
+                title[-1] += w["text"]
+                continue
+            if "Bold" not in w["fontname"] or (title and re.match(r"Art[ií]culo$", w["text"])):
+                break
+            title.append(w["text"])
+        if len(title) > 2:
+            titles.append(" ".join(title))
+    return titles
+
+
+def _split_titles(text: str, titles: list[str]) -> str:
+    """Pone cada título de artículo en su propia línea, separado del cuerpo, para usarlo como sección."""
+    for title in titles:
+        pattern = r"\s+".join(re.escape(w) for w in title.split())
+        text = re.sub(f"({pattern})[ \t]+", lambda m: m.group(1) + "\n", text, count=1)
+    return text
+
+
 def load_pages(raw_dir: Path = config.RAW_DIR) -> list[Page]:
     pages: list[Page] = []
     for path in sorted(raw_dir.glob("*.pdf")):
         with pdfplumber.open(path) as pdf:
             for number, page in enumerate(pdf.pages, start=1):
-                text = _clean(_page_text(page))
+                text = _split_titles(_clean(_page_text(page)), _article_titles(page))
                 if not _is_boilerplate(text):
                     pages.append(Page(path.name, number, text))
     return pages
@@ -157,10 +185,12 @@ def chunk_documents(pages: list[Page], strategy: str = config.CHUNK_STRATEGY) ->
 
 # ---------------------------------------------------------------- índice
 
-def get_embeddings():
+def get_embeddings(for_query: bool = False):
     from langchain_ollama import OllamaEmbeddings
 
-    return OllamaEmbeddings(model=config.EMBED_MODEL, base_url=config.OLLAMA_BASE_URL)
+    cpu = for_query and config.EMBED_QUERY_ON_CPU
+    return OllamaEmbeddings(model=config.EMBED_MODEL, base_url=config.OLLAMA_BASE_URL,
+                            keep_alive=config.KEEP_ALIVE, num_gpu=0 if cpu else None)
 
 
 def collection_name(strategy: str) -> str:
