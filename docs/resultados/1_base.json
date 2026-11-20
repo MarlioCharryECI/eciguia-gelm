@@ -1,0 +1,19 @@
+{
+  "corrida": "1_base",
+  "config": {
+    "chunking": "fijo",
+    "prompt": "basico",
+    "router": null,
+    "juez": "mismo LLM"
+  },
+  "n": 40,
+  "hit@k_retriever": 0.96,
+  "hit@k_con_umbral": 0.96,
+  "hit@k_articulo_exacto": null,
+  "ruteo_correcto": 0.675,
+  "herramienta_correcta": 0.0,
+  "rechazo_correcto": 0.857,
+  "acierto_respuesta": 0.818,
+  "fidelidad": 0.758,
+  "latencia_mediana_s": 13.79
+}

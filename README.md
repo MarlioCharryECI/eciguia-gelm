@@ -26,7 +26,24 @@ pregunta ─▶ router (LLM) ─┬─▶ documentos ─▶ Chroma (top 4, umbra
 | Interfaz | Gradio | `app.py` |
 | Evaluación | 40 preguntas + LLM como juez | `eval/` |
 
-<!-- RESULTADOS -->
+## Resultados
+
+Evaluación con 40 preguntas de respuesta conocida, en 6 corridas que cambian una cosa a la vez (detalle y discusión en la sección 4 del notebook):
+
+| Corrida | Qué cambia | Recuperación | Ruteo | Rechazo | Acierto reglamentos | Acierto fechas/cálculos | Latencia |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `1_base` | RAG sin router, prompt básico, chunking fijo | 96 % | 68 % | 86 % | 100 % | 25 % | 13,8 s |
+| `2_chunk_articulo` | chunking por artículo | 100 % | 68 % | 100 % | 96 % | 12 % | 12,2 s |
+| `3_router_tools` | + router y herramientas MCP | 100 % | 92 % | 100 % | 84 % | 100 % | 14,1 s |
+| `4_prompt_v1` | prompt RAG con reglas | 100 % | 92 % | 100 % | 80 % | 100 % | 12,1 s |
+| `5_prompt_v2` | prompt RAG V2 | 100 % | 92 % | 100 % | 84 % | 100 % | 12,5 s |
+| `6_final` | router V2 + prompt RAG V3 (la app) | 100 % | 98 % | 100 % | 92 % | 100 % | 12,2 s |
+
+- **Revisión humana de la corrida final:** 32 de 33 respuestas correctas y 7 de 7 rechazos correctos. El juez LLM coincidió con la revisión manual en 8 de 10 casos y fue más permisivo cuando falló.
+- **Umbral de relevancia calibrado** (`eval/calibrate.py`): con 0,45 pasan todas las preguntas con respuesta y se bloquea el 81 % de las que no la tienen; con el valor inicial de 0,65 solo se bloqueaba el 7 %. Ver `docs/resultados/calibracion.png`.
+- **Fallos analizados:** sesgo del router con las preguntas de matrícula, abstenciones por una regla demasiado estricta y polaridad de sí/no y aritmética de fechas del modelo de 7B. Hay una regresión conocida del router V2: "¿Quiénes forman el jurado…?" se rechaza.
+
+Todos los resúmenes, la tabla comparativa y la validación del juez están en [`docs/resultados/`](docs/resultados/).
 
 ## Instalación
 
@@ -65,7 +82,9 @@ uv run python eval/run_eval.py --name 1_base --baseline --prompt basico --strate
 uv run python eval/run_eval.py --name 2_chunk_articulo --baseline --prompt basico
 uv run python eval/run_eval.py --name 3_router_tools --prompt basico
 uv run python eval/run_eval.py --name 4_prompt_v1 --prompt v1
-uv run python eval/run_eval.py --name 5_final
+uv run python eval/run_eval.py --name 5_prompt_v2 --prompt v2
+uv run python eval/run_eval.py --name 6_final --router v2 --prompt v3
+uv run python eval/compare_router.py                # router V1 frente a V2 en 20 preguntas nuevas
 ```
 
 Cada experimento cambia una sola cosa respecto al anterior. Métricas: hit@4 del retriever, ruteo correcto, herramienta correcta, rechazo correcto, acierto y fidelidad (LLM como juez, validado a mano) y latencia mediana. El detalle queda en `eval/results/` y los resúmenes finales en `docs/resultados/`.

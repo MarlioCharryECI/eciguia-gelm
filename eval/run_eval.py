@@ -5,7 +5,8 @@ Experimentos del proyecto (cada uno cambia una sola cosa respecto al anterior):
     uv run python eval/run_eval.py --name 2_chunk_articulo --baseline --prompt basico
     uv run python eval/run_eval.py --name 3_router_tools --prompt basico
     uv run python eval/run_eval.py --name 4_prompt_v1 --prompt v1
-    uv run python eval/run_eval.py --name 5_final                     # prompt v2, el que usa la app
+    uv run python eval/run_eval.py --name 5_prompt_v2 --prompt v2
+    uv run python eval/run_eval.py --name 6_final --router v2 --prompt v3    # la configuración de la app
 
 Cada corrida guarda eval/results/<name>.csv (detalle) y eval/results/<name>.json (resumen).
 """
@@ -15,11 +16,13 @@ from __future__ import annotations
 import argparse
 import asyncio
 import csv
+import functools
 import json
 import statistics
 from pathlib import Path
 
 from eciguia import prompts
+from eciguia.ingest import chunk_documents, load_pages
 from eciguia.graph import EciGuiaAgent, _parse_json, _text, default_llm
 from eciguia.retriever import Retriever, format_context
 
@@ -45,19 +48,47 @@ def load_golden() -> list[dict]:
         return [json.loads(line) for line in file if line.strip()]
 
 
-def _is_expected(meta: dict, item: dict) -> bool:
+@functools.cache
+def article_pages() -> dict[tuple[str, str], tuple[int, int]]:
+    """Páginas que ocupa cada artículo: (documento, "Artículo N") -> (primera, última)."""
+    spans: dict[tuple[str, str], tuple[int, int]] = {}
+    for doc in chunk_documents(load_pages(), "articulo"):
+        meta = doc.metadata
+        key = (meta["source"], meta["section"].split(".")[0])
+        first, last = spans.get(key, (meta["page"], meta["page_end"]))
+        spans[key] = (min(first, meta["page"]), max(last, meta["page_end"]))
+    return spans
+
+
+def _is_expected(meta: dict, item: dict, exact: bool = False) -> bool:
+    """¿El fragmento es del documento y artículo esperados?
+
+    Por defecto el criterio es por páginas: el fragmento cuenta si es del documento esperado y cae en las
+    páginas que ocupa el artículo. Sirve igual para las dos estrategias (los fragmentos de tamaño fijo no
+    tienen sección), aunque es laxo: en la misma página puede haber otro artículo.
+    Con exact=True se exige la sección exacta ("Artículo 1" no acepta "Artículo 10. ..."); solo tiene
+    sentido con chunking por artículo.
+    """
     section = item.get("seccion", "")
-    # "Artículo 1" no debe aceptar "Artículo 10. ...": se compara hasta el punto
-    return meta["source"] == item["fuente"] and (not section or meta["section"].split(".")[0] == section)
+    if meta["source"] != item["fuente"]:
+        return False
+    if not section:
+        return True
+    if exact:
+        return meta.get("section", "").split(".")[0] == section
+    first, last = article_pages()[(item["fuente"], section)]
+    return first <= meta["page"] <= last
 
 
-def retrieval_metrics(retriever: Retriever, item: dict) -> dict:
-    """¿Aparece el fragmento correcto (documento y artículo) entre los k recuperados?
+def retrieval_metrics(retriever: Retriever, item: dict, strategy: str) -> dict:
+    """¿Aparece el fragmento correcto entre los k recuperados?
     Se mide antes y después del umbral, para separar la calidad del retriever del efecto del filtro."""
     raw = retriever.store.similarity_search_with_score(item["pregunta"], k=retriever.k)
     return {
         "hit_retriever": any(_is_expected(doc.metadata, item) for doc, _ in raw),
         "hit_con_umbral": any(_is_expected(doc.metadata, item) for doc, d in raw if d <= retriever.max_distance),
+        "hit_articulo_exacto": any(_is_expected(doc.metadata, item, exact=True) for doc, _ in raw)
+        if strategy == "articulo" else None,
     }
 
 
@@ -97,7 +128,7 @@ async def run(args) -> None:
             "error": state.get("error", ""),
         }
         if item["tipo"] == "documentos":
-            row.update(retrieval_metrics(retriever, item))
+            row.update(retrieval_metrics(retriever, item, args.strategy))
         if item["tipo"] == "herramienta":
             row["herramienta_correcta"] = state.get("tool_name") == item["herramienta"]
         if item["tipo"] in ("fuera_de_alcance", "trampa"):
@@ -122,6 +153,40 @@ async def run(args) -> None:
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 
 
+def recompute_retrieval(name: str) -> None:
+    """Recalcula solo las métricas de recuperación de una corrida guardada, sin volver a llamar al LLM."""
+    out = EVAL_DIR / "results"
+    summary = json.loads((out / f"{name}.json").read_text(encoding="utf-8"))
+    with open(out / f"{name}.csv", encoding="utf-8") as file:
+        rows = list(csv.DictReader(file))
+    strategy = summary["config"]["chunking"]
+    retriever = Retriever(strategy=strategy)
+    golden = {item["id"]: item for item in load_golden()}
+    for row in rows:
+        if row["tipo"] == "documentos":
+            row.update(retrieval_metrics(retriever, golden[row["id"]], strategy))
+    fields = list(dict.fromkeys(k for r in rows for k in r))
+    with open(out / f"{name}.csv", "w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+    hits = [r for r in rows if r["tipo"] == "documentos"]
+    summary = {k: v for k, v in summary.items() if not k.startswith("hit@")}
+    hit_metrics = {}
+    for key, column in (("hit@k_retriever", "hit_retriever"), ("hit@k_con_umbral", "hit_con_umbral"),
+                        ("hit@k_articulo_exacto", "hit_articulo_exacto")):
+        values = [r[column] for r in hits if r.get(column) not in (None, "")]
+        hit_metrics[key] = round(sum(str(v) == "True" for v in values) / len(values), 3) if values else None
+    # se reinsertan las métricas de recuperación después de "n" para conservar el orden del resumen
+    ordered = {}
+    for k, v in summary.items():
+        ordered[k] = v
+        if k == "n":
+            ordered.update(hit_metrics)
+    (out / f"{name}.json").write_text(json.dumps(ordered, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(name, hit_metrics)
+
+
 def rate(rows: list[dict], key: str) -> float | None:
     values = [r[key] for r in rows if r.get(key) is not None]
     return round(sum(values) / len(values), 3) if values else None
@@ -135,6 +200,7 @@ def summarize(rows: list[dict], args) -> dict:
         "n": len(rows),
         "hit@k_retriever": rate(rows, "hit_retriever"),
         "hit@k_con_umbral": rate(rows, "hit_con_umbral"),
+        "hit@k_articulo_exacto": rate(rows, "hit_articulo_exacto"),
         "ruteo_correcto": rate(rows, "ruta_correcta"),
         "herramienta_correcta": rate(rows, "herramienta_correcta"),
         "rechazo_correcto": rate(rows, "rechazo_correcto"),
@@ -148,12 +214,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--name", default="final")
     parser.add_argument("--strategy", default="articulo", choices=["articulo", "fijo"])
-    parser.add_argument("--prompt", default="v2", choices=list(prompts.RAG_PROMPTS), help="versión del prompt RAG")
-    parser.add_argument("--router", default="v1", choices=list(prompts.ROUTER_PROMPTS), help="versión del prompt del router")
+    parser.add_argument("--prompt", default="v3", choices=list(prompts.RAG_PROMPTS), help="versión del prompt RAG")
+    parser.add_argument("--router", default="v2", choices=list(prompts.ROUTER_PROMPTS), help="versión del prompt del router")
     parser.add_argument("--baseline", action="store_true", help="sin router ni herramientas: todo va al RAG")
     parser.add_argument("--no-judge", dest="judge", action="store_false", help="no usar LLM como juez")
     parser.add_argument("--judge-model", default=None, help="modelo de Ollama para el juez (por defecto, el mismo que responde)")
-    asyncio.run(run(parser.parse_args()))
+    parser.add_argument("--recompute-retrieval", action="store_true",
+                        help="solo recalcula hit@k de la corrida --name ya guardada, sin llamar al LLM")
+    args = parser.parse_args()
+    if args.recompute_retrieval:
+        recompute_retrieval(args.name)
+    else:
+        asyncio.run(run(args))
 
 
 if __name__ == "__main__":

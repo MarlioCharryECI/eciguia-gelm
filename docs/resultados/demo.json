@@ -1,0 +1,51 @@
+[
+  {
+    "pregunta": "¿Qué porcentaje de créditos necesito para hacer la práctica?",
+    "ruta": "documentos",
+    "herramienta": "",
+    "respuesta": "Para acceder al programa de prácticas profesionales, necesitas haber cursado y aprobado el setenta y cinco por ciento (75 %) de los créditos académicos de tu plan de estudios [3].",
+    "fuentes": [
+      "[1] Reglamento de Prácticas Profesionales en Pregrado, Artículo 19. Asignaturas adicionales durante la práctica profesional (pág. 13)",
+      "[2] Reglamento de Prácticas Profesionales en Pregrado, Artículo 26. Pago de derechos de matrícula para prácticas profesionales (pág. 18)",
+      "[3] Reglamento de Prácticas Profesionales en Pregrado, Artículo 10. Requisitos para solicitar el acceso al programa de prácticas profesionales (pág. 9)",
+      "[4] Reglamento de Movilidad Estudiantil de Pregrado, Artículo 14. Práctica profesional internacional (pág. 12)"
+    ],
+    "latencia_s": 14.17
+  },
+  {
+    "pregunta": "¿Hasta cuándo puedo cancelar el semestre?",
+    "ruta": "herramienta",
+    "herramienta": "consultar_calendario",
+    "respuesta": "Puedes cancelar el semestre hasta el 21 de noviembre de 2026, que es la fecha límite para el periodo 2026-2.",
+    "fuentes": [
+      "Calendario Académico 2027"
+    ],
+    "latencia_s": 12.34
+  },
+  {
+    "pregunta": "Saqué 4.2 en una materia de 3 créditos y 3.6 en una de 4, ¿cuál es mi promedio?",
+    "ruta": "herramienta",
+    "herramienta": "calcular_promedio_ponderado",
+    "respuesta": "Tu promedio ponderado sería 3.9 (3.857), considerando los créditos de las materias que mencionaste.",
+    "fuentes": [
+      "Herramienta MCP: calcular_promedio_ponderado"
+    ],
+    "latencia_s": 12.67
+  },
+  {
+    "pregunta": "¿Cuántas faltas de asistencia se permiten antes de perder una materia?",
+    "ruta": "documentos",
+    "herramienta": "",
+    "respuesta": "No encontré esa información en los reglamentos que tengo. Te sugiero consultarlo con la decanatura de tu programa.",
+    "fuentes": [],
+    "latencia_s": 4.77
+  },
+  {
+    "pregunta": "¿Me recomiendas una película?",
+    "ruta": "fuera_de_alcance",
+    "herramienta": "",
+    "respuesta": "Solo puedo ayudarte con temas académicos de la Escuela: reglamentos de prácticas, opción de grado, trabajos dirigidos, movilidad, inglés, el calendario académico 2027 y cálculo de promedios. Para otros temas te recomiendo consultar otra fuente.",
+    "fuentes": [],
+    "latencia_s": 3.36
+  }
+]

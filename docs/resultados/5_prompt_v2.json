@@ -1,0 +1,19 @@
+{
+  "corrida": "5_prompt_v2",
+  "config": {
+    "chunking": "articulo",
+    "prompt": "v2",
+    "router": "v1",
+    "juez": "mismo LLM"
+  },
+  "n": 40,
+  "hit@k_retriever": 1.0,
+  "hit@k_con_umbral": 1.0,
+  "hit@k_articulo_exacto": 1.0,
+  "ruteo_correcto": 0.925,
+  "herramienta_correcta": 1.0,
+  "rechazo_correcto": 1.0,
+  "acierto_respuesta": 0.879,
+  "fidelidad": 0.939,
+  "latencia_mediana_s": 12.51
+}

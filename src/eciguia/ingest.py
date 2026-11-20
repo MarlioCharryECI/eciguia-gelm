@@ -110,12 +110,12 @@ def load_pages(raw_dir: Path = config.RAW_DIR) -> list[Page]:
 
 # ---------------------------------------------------------------- chunking
 
-def _make_doc(source: str, page: int, section: str, text: str) -> Document:
+def _make_doc(source: str, page: int, section: str, text: str, page_end: int | None = None) -> Document:
     title = config.DOCUMENT_TITLES.get(source, source)
     header = f"{title}. {section}".strip(". ")
     return Document(
         page_content=f"{header}\n{text.strip()}",
-        metadata={"source": source, "title": title, "page": page, "section": section},
+        metadata={"source": source, "title": title, "page": page, "page_end": page_end or page, "section": section},
     )
 
 
@@ -171,7 +171,7 @@ def chunk_by_article(pages: list[Page]) -> list[Document]:
             section = re.split(r"(?<=\.)\s", first_line, maxsplit=2)
             section = " ".join(section[:2]).strip()[:120]
             for piece in splitter.split_text(body):
-                docs.append(_make_doc(source, page_at(start), section, piece))
+                docs.append(_make_doc(source, page_at(start), section, piece, page_end=page_at(max(start, end - 1))))
     return docs
 
 

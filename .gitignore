@@ -1,8 +1,41 @@
+# Python y entorno
 .venv/
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Secretos: solo se versiona la plantilla
 .env
+.env.*
+!.env.example
+
+# Datos generados (se reconstruyen con eciguia.ingest y eval/run_eval.py).
+# Los resultados finales que cita el notebook se copian a docs/resultados/, que sí se versiona.
 data/chroma/
 eval/results/
-.pytest_cache/
+
+# Notebooks y apps
+.ipynb_checkpoints/
 .gradio/
+flagged/
+
+# Editores e IDE
+.idea/
+.vscode/
+*.swp
+
+# Sistema operativo
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Varios
+*.log
+*.zip

@@ -1,0 +1,7 @@
+corrida,chunking,router,prompt RAG,Recuperación hit@4,Ruteo,Herramienta,Rechazo,Acierto (juez),Fidelidad (juez),Acierto reglamentos,Acierto fechas/cálculos,Latencia mediana (s)
+1_base,fijo,—,basico,0.96,0.675,0.0,0.857,0.818,0.758,1.0,0.25,13.79
+2_chunk_articulo,articulo,—,basico,1.0,0.675,0.0,1.0,0.758,0.758,0.96,0.125,12.2
+3_router_tools,articulo,v1,basico,1.0,0.925,1.0,1.0,0.879,0.939,0.84,1.0,14.075
+4_prompt_v1,articulo,v1,v1,1.0,0.925,1.0,1.0,0.848,0.909,0.8,1.0,12.075
+5_prompt_v2,articulo,v1,v2,1.0,0.925,1.0,1.0,0.879,0.939,0.84,1.0,12.51
+6_final,articulo,v2,v3,1.0,0.975,1.0,1.0,0.939,0.939,0.92,1.0,12.215
