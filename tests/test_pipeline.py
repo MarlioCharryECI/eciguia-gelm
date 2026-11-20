@@ -1,0 +1,90 @@
+"""Pruebas de punta a punta sin Ollama: uv run pytest"""
+
+import asyncio
+
+import pytest
+from langchain_chroma import Chroma
+
+from eciguia import tools_logic
+from eciguia.graph import EciGuiaAgent
+from eciguia.ingest import chunk_documents, load_pages
+from eciguia.mcp_server import mcp
+from eciguia.retriever import Retriever
+from fakes import HashEmbeddings, ScriptedLLM
+
+
+@pytest.fixture(scope="module")
+def pages():
+    return load_pages()
+
+
+@pytest.fixture(scope="module")
+def agent(pages, tmp_path_factory):
+    docs = chunk_documents(pages, "articulo")
+    store = Chroma(
+        collection_name="test",
+        embedding_function=HashEmbeddings(),
+        persist_directory=str(tmp_path_factory.mktemp("chroma")),
+        collection_metadata={"hnsw:space": "cosine"},
+    )
+    store.add_documents(docs)
+    retriever = Retriever(store=store, k=4, max_distance=0.95)
+    return EciGuiaAgent(llm=ScriptedLLM(), retriever=retriever, mcp_target=mcp)
+
+
+def test_loads_all_documents(pages):
+    assert len({p.source for p in pages}) == 6
+
+
+@pytest.mark.parametrize("strategy", ["articulo", "fijo"])
+def test_chunking(pages, strategy):
+    docs = chunk_documents(pages, strategy)
+    assert len(docs) > 50
+    assert all(d.metadata["page"] >= 1 for d in docs)
+
+
+def test_article_chunks_keep_section(pages):
+    docs = chunk_documents(pages, "articulo")
+    sections = {d.metadata["section"] for d in docs}
+    assert any(s.startswith("Artículo 12. Duración de la práctica") for s in sections)
+
+
+def test_modification_keeps_only_new_version(pages):
+    docs = [d for d in chunk_documents(pages, "articulo") if d.metadata["source"].startswith("modificacion")]
+    text = " ".join(d.page_content for d in docs)
+    assert "en el proceso de admisión" in text  # frase que solo está en la nueva versión del art. 69
+
+
+def test_calendar_lookup():
+    result = tools_logic.consultar_calendario("cancelación de asignaturas", "2027-1")
+    assert result[0]["fin"] == "8 de mayo de 2027"
+
+
+def test_weighted_average():
+    result = tools_logic.calcular_promedio_ponderado([{"nota": 4.2, "creditos": 3}, {"nota": 3.5, "creditos": 4}])
+    assert result["promedio_exacto"] == 3.8
+    assert result["creditos"] == 7
+
+
+def test_agent_document_route(agent):
+    state = asyncio.run(agent.ask("¿Cuánto dura la práctica profesional nacional?"))
+    assert state["route"] == "documentos"
+    assert state["sources"]
+
+
+def test_agent_tool_route_uses_mcp(agent):
+    state = asyncio.run(agent.ask("¿Hasta cuándo puedo cancelar asignaturas en 2027-1?"))
+    assert state["route"] == "herramienta"
+    assert state["tool_name"] == "consultar_calendario"
+    assert "8 de mayo de 2027" in state["answer"]
+
+
+def test_agent_average_tool(agent):
+    state = asyncio.run(agent.ask("¿Cuál es mi promedio si saqué 4.2 en 3 créditos y 3.5 en 4 créditos?"))
+    assert state["tool_name"] == "calcular_promedio_ponderado"
+    assert "3.8" in state["answer"]
+
+
+def test_agent_rejects_out_of_scope(agent):
+    state = asyncio.run(agent.ask("¿Me recomiendas una película?"))
+    assert state["route"] == "fuera_de_alcance"
