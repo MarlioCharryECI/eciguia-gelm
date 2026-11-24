@@ -97,14 +97,49 @@ def _split_titles(text: str, titles: list[str]) -> str:
     return text
 
 
-def load_pages(raw_dir: Path = config.RAW_DIR) -> list[Page]:
+SOURCE_RE = re.compile(r"<!--\s*fuente:\s*data/raw/(\S+\.pdf)")
+PAGE_MARK_RE = re.compile(r"<!--\s*p[aá]g\.\s*(\d+)\s*-->")
+
+
+def load_transcription(path: Path) -> list[Page]:
+    """Páginas de una transcripción en Markdown. El texto ya viene limpio; los marcadores
+    <!-- pág. N --> indican la página del PDF original para poder citarla."""
     pages: list[Page] = []
+    parts = PAGE_MARK_RE.split(path.read_text(encoding="utf-8"))
+    # parts = [antes del primer marcador, número, texto, número, texto, ...]
+    for number, text in zip(parts[1::2], parts[2::2]):
+        text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+        text = re.sub(r"\n{3,}", "\n\n", text).strip()
+        if not _is_boilerplate(text):
+            pages.append(Page(path.name, int(number), text))
+    return pages
+
+
+def transcribed_pdfs(transcriptions_dir: Path = config.TRANSCRIPTIONS_DIR) -> set[str]:
+    """PDF de data/raw/ que tienen transcripción (escaneados): se indexa la transcripción, no el PDF."""
+    if not transcriptions_dir.exists():
+        return set()
+    return {m.group(1) for path in transcriptions_dir.glob("*.md")
+            if (m := SOURCE_RE.search(path.read_text(encoding="utf-8")))}
+
+
+def load_pages(raw_dir: Path = config.RAW_DIR, transcriptions_dir: Path = config.TRANSCRIPTIONS_DIR) -> list[Page]:
+    pages: list[Page] = []
+    skip_pdfs = transcribed_pdfs(transcriptions_dir)
     for path in sorted(raw_dir.glob("*.pdf")):
+        if path.name in skip_pdfs:
+            continue
+        skip_pages = config.SKIP_PAGES.get(path.name, set())
         with pdfplumber.open(path) as pdf:
             for number, page in enumerate(pdf.pages, start=1):
+                if number in skip_pages:
+                    continue
                 text = _split_titles(_clean(_page_text(page)), _article_titles(page))
                 if not _is_boilerplate(text):
                     pages.append(Page(path.name, number, text))
+    if transcriptions_dir.exists():
+        for path in sorted(transcriptions_dir.glob("*.md")):
+            pages.extend(load_transcription(path))
     return pages
 
 
@@ -148,7 +183,7 @@ def chunk_by_article(pages: list[Page]) -> list[Document]:
             return max(num for start, num in offsets if start <= pos)
 
         starts = [m.start() for m in ARTICLE_RE.finditer(full_text)]
-        if not starts:
+        if not starts or source in config.FIXED_CHUNK_SOURCES:
             docs.extend(chunk_fixed(source_pages))
             continue
 
@@ -168,7 +203,8 @@ def chunk_by_article(pages: list[Page]) -> list[Document]:
             pending = ""
             body = re.sub(r"^(Art[ií]culo \d+[^\n]*\n)(?:\s*Art[ií]culo \d+\s*\n|\s*Versi[oó]n actual.*\n|\s*Nueva versi[oó]n\s*\n)+", r"\1", body)
             first_line = body.split("\n", 1)[0]
-            section = re.split(r"(?<=\.)\s", first_line, maxsplit=2)
+            # "Artículo 12. Título." o "Artículo 2. Título: cuerpo" (algunos acuerdos cierran el título con dos puntos)
+            section = re.split(r"(?<=[.:])\s", first_line, maxsplit=2)
             section = " ".join(section[:2]).strip()[:120]
             for piece in splitter.split_text(body):
                 docs.append(_make_doc(source, page_at(start), section, piece, page_end=page_at(max(start, end - 1))))

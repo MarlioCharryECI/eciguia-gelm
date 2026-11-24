@@ -18,13 +18,14 @@ ROUTE_LABELS = {
 }
 
 EXAMPLES = [
-    "¿Qué porcentaje de créditos debo tener aprobado para hacer la práctica profesional?",
-    "¿Cuánto dura una práctica profesional internacional?",
+    "¿La práctica profesional puede ser de medio tiempo?",
+    "¿Qué promedio necesito para que me aprueben créditos adicionales?",
+    "¿Qué requisitos hay para hacer doble programa?",
     "¿Hasta cuándo puedo cancelar el semestre?",
-    "¿Cuántos días faltan para el inicio de clases?",
+    "¿Cuánto cuesta la matrícula de ingeniería en 2027?",
+    "¿En qué semestre se ve Arquitecturas de Software?",
     "Saqué 4.2 en una materia de 3 créditos y 3.6 en una de 4 créditos, ¿cuál es mi promedio?",
-    "¿Qué certificados de inglés me sirven para el requisito de grado?",
-    "¿Cuántas faltas se permiten antes de perder una materia?",
+    "¿Cuántas faltas de asistencia se permiten antes de perder una materia?",
     "¿Me recomiendas una película?",
 ]
 
@@ -61,9 +62,11 @@ demo = gr.ChatInterface(
     title="EciGuía 🎓",
     description=(
         "Asistente académico para estudiantes de pregrado de la Escuela Colombiana de Ingeniería Julio Garavito. "
-        "Responde con base en 6 reglamentos oficiales (prácticas, opción de grado, trabajos dirigidos, movilidad, "
-        "inglés y la modificación 2025 al Reglamento Estudiantil) y el calendario académico 2027, citando documento "
-        "y página. Si algo no está en los documentos, lo dice. Corre 100 % local con Ollama."
+        "Responde con base en 13 documentos oficiales (reglamentos de prácticas, opción de grado, trabajos dirigidos, "
+        "movilidad, inglés, líneas de énfasis, doble programa, créditos adicionales, cancelación de asignaturas y otros), "
+        "el calendario académico 2027, los valores de matrícula y derechos pecuniarios 2027 y el plan de estudios de "
+        "Ingeniería de Sistemas, citando documento y página. Si algo no está en los documentos, lo dice. "
+        "Corre 100 % local con Ollama."
     ),
     examples=EXAMPLES,
     cache_examples=False,

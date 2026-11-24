@@ -163,6 +163,17 @@ Las reglas de la primera etapa siguen vigentes. Además: **Claude no hace commit
 
 **Estado de la fase 6 (24/11):** archivos renombrados y organizados; transcripciones en `data/transcripciones/` (4 archivos); tablas en `data/valores_2027.json` y `data/plan_estudios_sistemas.json`, con sumas verificadas contra los totales oficiales; títulos en `config.py`; página 1 del acta de doble programa excluida (lista de asistentes). **Falta: la verificación del usuario.**
 
+**Fase 6 verificada por el usuario (24/11).**
+
+**Estado de la fase 7 (24/11): terminada.**
+- La ingesta lee las transcripciones, salta los PDF transcritos y las páginas de `SKIP_PAGES`, y el acta de doble programa va con chunking fijo.
+- Los fragmentos de los 6 documentos originales siguen **idénticos**: 128 por artículo y 138 fijos, comparados contra una copia previa.
+- Índice nuevo: 208 fragmentos de 13 documentos.
+- Herramientas MCP nuevas: `consultar_valores_2027` y `consultar_plan_estudios`. También `ROUTER_V3`, la selección y redacción de herramientas, `OUT_OF_SCOPE` y los ejemplos de la app.
+- 18 pruebas pasan.
+- Prueba de humo (14 preguntas): rutas y herramientas correctas, y la regresión de d18 quedó corregida.
+- Pendiente para la fase 8: una cita inventada ("[7]") en cancelación, y las pruebas Saber Pro mencionadas como requisito de ingreso al doble programa.
+
 **Cosas para avisar al usuario (no corregidas):**
 - RR016: las notas al pie 1 y 2 parecen intercambiadas en el documento original.
 - Cancelación: el Acuerdo 02 de 2017 dice semana 12 (con extemporáneas en las semanas 13 a 16), y el Acuerdo 001 de 2025 lo prorroga hasta el sábado de la semana 15 "del año en curso". Para fechas concretas manda el calendario (2027-1: 8 de mayo).

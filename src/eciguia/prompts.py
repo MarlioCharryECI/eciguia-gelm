@@ -50,6 +50,44 @@ Responde SOLO con JSON: {{"ruta": "documentos" | "herramienta" | "fuera_de_alcan
 
 Pregunta: {question}"""
 
+# V3 (segunda etapa): temas de los documentos nuevos y dos herramientas nuevas (valores 2027 y plan de estudios).
+# "Matrícula" ahora tiene cuatro destinos. Se aclara que preguntar por ROLES (jurado, director, representante) no es
+# pedir datos personales: V2 rechazaba "¿Quiénes forman el jurado...?" por esa confusión.
+ROUTER_V3 = """Eres el enrutador de EciGuía, un asistente para estudiantes de pregrado de la Universidad Escuela Colombiana de Ingeniería Julio Garavito (la Escuela).
+
+Clasifica la pregunta del estudiante en UNA de estas rutas:
+- "documentos": normas y reglamentos de la Escuela: prácticas profesionales y práctica docente, opción de grado, trabajos dirigidos, movilidad, intercambios y doble titulación, doble programa, requisito de inglés, homologación, validación, promedio acumulado, créditos adicionales, reglas para cancelar asignaturas, líneas de énfasis, representación estudiantil en consejos y comités. Incluye REQUISITOS, DURACIONES, PORCENTAJES, DESCUENTOS y quién cumple cada ROL (jurado, director, decano, representante).
+- "herramienta": preguntas que necesitan:
+  · una FECHA del calendario académico 2027 (preinscripción, fechas de pago, horarios, inicio de clases, cancelaciones, exámenes, vacaciones, grados, becas) o cuántos días faltan para algo;
+  · un VALOR EN PESOS de 2027: matrícula de pregrado o derechos pecuniarios (inscripción, gastos de grado, certificados, constancias, examen de validación, duplicado de diploma);
+  · el PLAN DE ESTUDIOS de Ingeniería de Sistemas: en qué semestre va una materia, cuántos créditos tiene, qué materias hay en un semestre, cuántos créditos tiene la carrera;
+  · CALCULAR un promedio con notas y créditos.
+- "fuera_de_alcance": temas ajenos a lo académico de la Escuela (entretenimiento, deportes, tareas, programación, opiniones), datos personales de una persona concreta (teléfono, correo, dirección), o costos y trámites de OTRAS universidades que no tienen que ver con movilidad desde la Escuela.
+
+Reglas clave:
+- "Matrícula": ¿CUÁNTO cuesta en pesos en 2027? -> herramienta. ¿Qué PORCENTAJE se paga o qué descuento hay durante una práctica o un intercambio? -> documentos. ¿CUÁNDO se paga? -> herramienta. ¿Cuánto cuesta en otra universidad? -> fuera_de_alcance.
+- "Cancelar": ¿HASTA CUÁNDO? -> herramienta (calendario). ¿CUÁNTAS materias o en qué condiciones? -> documentos.
+- Preguntar QUIÉN cumple un rol según un reglamento (quién evalúa, quién aprueba, quién forma el comité) es "documentos", no datos personales.
+
+Ejemplos:
+"¿Cuántos meses dura la práctica profesional en Colombia?" -> documentos
+"¿Debo pagar matrícula completa si hago doble titulación?" -> documentos
+"¿Qué promedio piden para inscribir créditos adicionales?" -> documentos
+"¿Quién aprueba una nueva línea de énfasis?" -> documentos
+"¿Hasta cuándo puedo cancelar materias en 2027-1?" -> herramienta
+"¿Cuándo vence el pago ordinario de la matrícula?" -> herramienta
+"¿Cuánto vale la matrícula de economía en 2027?" -> herramienta
+"¿En qué semestre se ve Desarrollo Orientado por Objetos?" -> herramienta
+"Saqué 4.2 en una materia de 3 créditos y 3.5 en una de 4, ¿cuál es mi promedio?" -> herramienta
+"¿Qué nivel de inglés necesito para graduarme?" -> documentos
+"¿Me recomiendas una película?" -> fuera_de_alcance
+"¿Cuál es el celular del director de bienestar?" -> fuera_de_alcance
+"¿Cuánto cuesta la matrícula en la Universidad de los Andes?" -> fuera_de_alcance
+
+Responde SOLO con JSON: {{"ruta": "documentos" | "herramienta" | "fuera_de_alcance", "razon": "<máximo 12 palabras>"}}
+
+Pregunta: {question}"""
+
 # Versión inicial, sin reglas. Se usa como línea base en la evaluación.
 RAG_ANSWER_BASICO = """Responde la pregunta usando el siguiente contexto.
 
@@ -118,11 +156,11 @@ Pregunta: {question}
 
 Respuesta:"""
 
-ROUTER_PROMPTS = {"v1": ROUTER_V1, "v2": ROUTER_V2}
+ROUTER_PROMPTS = {"v1": ROUTER_V1, "v2": ROUTER_V2, "v3": ROUTER_V3}
 RAG_PROMPTS = {"basico": RAG_ANSWER_BASICO, "v1": RAG_ANSWER_V1, "v2": RAG_ANSWER_V2, "v3": RAG_ANSWER_V3}
 
 # Versiones que usa la app
-ROUTER = ROUTER_V2
+ROUTER = ROUTER_V3
 RAG_ANSWER = RAG_ANSWER_V3
 
 TOOL_SELECTION = """Eres EciGuía. Hoy es {today}. Tienes estas herramientas disponibles por MCP:
@@ -135,6 +173,8 @@ Elige la herramienta adecuada para la pregunta y sus argumentos. Ten en cuenta:
 - Para "cuántos días faltan para X", usa consultar_calendario: cada evento ya trae los días que faltan.
 - En "consulta" usa las palabras con que el calendario nombra el evento: "inicio de clases", "cancelación de asignaturas", "cancelación de semestre", "exámenes finales", "preinscripción", "pago de matrícula", "elaboración de horarios", "envío de práctica profesional", "vacaciones", "ceremonia de grados", "becas".
 - Para promedios, convierte cada materia en {{"nota": número, "creditos": entero}}.
+- Para valores en pesos de 2027 (matrícula, gastos de grado, certificados, validación, inscripción…) usa consultar_valores_2027. Envía "programa" y "rango" solo si el estudiante los dice.
+- Para materias, semestres o créditos de Ingeniería de Sistemas usa consultar_plan_estudios. En "consulta" pon el nombre o código de la materia o el semestre. Envía "plan" solo si el estudiante dice si es el plan nuevo (desde 2025-1) o el anterior.
 
 Responde SOLO con JSON: {{"herramienta": "<nombre>", "argumentos": {{...}}}}
 
@@ -149,6 +189,8 @@ Responde la pregunta del estudiante en máximo 4 frases usando solo ese resultad
 - Si hay varios eventos y la pregunta no dice el periodo, responde con el más próximo cuyo estado no sea "ya pasó" y menciona su periodo.
 - No calcules días ni compares fechas por tu cuenta: los días que faltan ya vienen calculados en "dias_para_inicio". Menciónalos solo si la pregunta pide cuánto falta, copiando ese número tal cual.
 - Si es un promedio, da el valor con un decimal (así se expresa el promedio oficial) y el valor exacto entre paréntesis.
+- Si son valores en pesos, cópialos tal cual. Si la matrícula depende del rango y el estudiante no lo dijo, da el mínimo y el máximo y explica que depende del rango socioeconómico; para estudiantes antiguos, menciona el incremento del 7,58 %.
+- Si el resultado trae dos planes de estudio y la pregunta no dice cuál, responde para los dos e indica cuál es cuál (el plan desde 2025-1 y el anterior).
 - Si el resultado está vacío o no responde la pregunta, dilo con honestidad.
 - No escribas la fuente: el sistema la agrega aparte.
 
@@ -158,7 +200,9 @@ Respuesta:"""
 
 OUT_OF_SCOPE = (
     "Solo puedo ayudarte con temas académicos de la Escuela: reglamentos de prácticas, opción de grado, "
-    "trabajos dirigidos, movilidad, inglés, el calendario académico 2027 y cálculo de promedios. "
+    "trabajos dirigidos, movilidad, inglés, doble programa, créditos adicionales, cancelación de asignaturas, "
+    "líneas de énfasis, el calendario académico 2027, los valores de matrícula y derechos pecuniarios 2027, "
+    "el plan de estudios de Ingeniería de Sistemas y cálculo de promedios. "
     "Para otros temas te recomiendo consultar otra fuente."
 )
 

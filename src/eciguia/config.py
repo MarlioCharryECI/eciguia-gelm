@@ -51,6 +51,10 @@ SKIP_PAGES = {
     "condiciones_doble_programa_2026.pdf": {1},
 }
 
+# Documentos que se parten por tamaño aunque mencionen artículos: el acta de doble programa cita el art. 49 pero
+# su contenido son 3 artículos nuevos sin numerar; citarlo como "Artículo 49" sería engañoso.
+FIXED_CHUNK_SOURCES = {"condiciones_doble_programa_2026.pdf"}
+
 # Transcripciones de PDF escaneados o mixtos. La ingesta usa la transcripción en vez del texto del PDF.
 TRANSCRIPTIONS_DIR = ROOT / "data" / "transcripciones"
 

@@ -90,6 +90,33 @@ def test_calendar_without_period_puts_upcoming_first():
     assert later[0]["periodo"] == "2027-1"
 
 
+def test_transcriptions_replace_scanned_pdfs(pages):
+    sources = {p.source for p in pages}
+    assert {p.number for p in pages if p.source == "lineamientos_creditos_adicionales.md"} == {1, 2}
+    # el PDF escaneado (o mixto) no se indexa: se usa su transcripción
+    assert "lineamientos_creditos_adicionales.pdf" not in sources
+    assert "lineamientos_cancelacion_asignaturas_2025.pdf" not in sources
+    assert "lineamientos_cancelacion_asignaturas_2025.md" in sources
+
+
+def test_attendance_list_page_is_skipped(pages):
+    assert not [p for p in pages if p.source == "condiciones_doble_programa_2026.pdf" and p.number == 1]
+
+
+def test_values_2027():
+    grado = tools_logic.consultar_valores_2027("gastos de grado")
+    assert grado["resultados"][0]["valor_2027"] == "$979.000"
+    matricula = tools_logic.consultar_valores_2027("matrícula", programa="economía", rango=5)
+    assert matricula["valores"][0]["Economía y Administración de Empresas"] == "$9.596.000"
+
+
+def test_study_plan_both_versions():
+    planes = tools_logic.consultar_plan_estudios("ARSW")["planes"]
+    semestres = {p["plan"].split(" (")[0]: p["asignaturas"][0]["semestre"] for p in planes}
+    assert sorted(semestres.values()) == [6, 8]  # 6.° en el plan desde 2025-1, 8.° en el anterior
+    assert {p["resumen"]["total_creditos"] for p in planes} == {139, 158}
+
+
 def test_weighted_average():
     result = tools_logic.calcular_promedio_ponderado([{"nota": 4.2, "creditos": 3}, {"nota": 3.5, "creditos": 4}])
     assert result["promedio_exacto"] == 3.8

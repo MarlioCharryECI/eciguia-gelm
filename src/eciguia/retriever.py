@@ -17,7 +17,7 @@ class Hit:
     @property
     def citation(self) -> str:
         meta = self.doc.metadata
-        section = f", {meta['section']}" if meta.get("section") else ""
+        section = f", {meta['section'].rstrip(':')}" if meta.get("section") else ""
         return f"{meta['title']}{section} (pág. {meta['page']})"
 
 

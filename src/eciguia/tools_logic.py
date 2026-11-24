@@ -6,6 +6,7 @@ El servidor MCP (mcp_server.py) solo expone estas funciones.
 from __future__ import annotations
 
 import json
+import re
 import unicodedata
 from datetime import date
 
@@ -106,4 +107,156 @@ def calcular_promedio_ponderado(asignaturas: list[dict]) -> dict:
         "promedio_un_decimal": round(exacto, 1),
         "promedio_exacto": round(exacto, 3),
         "creditos": total_creditos,
+    }
+
+
+# ---------------------------------------------------------------- valores 2027 (matrícula y derechos pecuniarios)
+
+STOPWORDS_VALORES = STOPWORDS | {"cuanto", "cuesta", "cuestan", "valor", "vale", "precio", "pagar", "pago", "costo",
+                                 "2027", "año", "ano", "escuela", "derecho", "derechos"}
+# Palabras con que los estudiantes preguntan, frente a como los nombra la resolución
+SINONIMOS_VALORES = {"notas": "calificaciones", "graduarme": "grado", "graduacion": "grado", "graduar": "grado",
+                     "titulo": "diploma", "certificado": "certificados", "oxford": "ingles"}
+GRUPOS_MATRICULA = {
+    "ingenierias": ("ingenier", "sistemas", "civil", "industrial", "electr", "mecan", "ambiental", "biomed",
+                    "estadist", "ciberseg", "inteligencia", "biotecn"),
+    "economia_administracion": ("econom", "administ"),
+    "matematicas": ("matemat",),
+}
+
+
+def _pesos(valor: int) -> str:
+    return "$" + f"{valor:,}".replace(",", ".")
+
+
+def load_values() -> dict:
+    with open(config.VALUES_PATH, encoding="utf-8") as file:
+        return json.load(file)
+
+
+def _grupo_matricula(texto: str) -> str | None:
+    texto = _normalize(texto)
+    # "economía" y "matemáticas" se revisan antes que "ingeniería" (más específicos)
+    for grupo in ("economia_administracion", "matematicas", "ingenierias"):
+        if any(raiz in texto for raiz in GRUPOS_MATRICULA[grupo]):
+            return grupo
+    return None
+
+
+def consultar_valores_2027(consulta: str, programa: str | None = None, rango: int | None = None) -> dict:
+    """Valores de 2027 en pesos: matrícula de pregrado por programa y rango socioeconómico, y derechos
+    pecuniarios (inscripción, gastos de grado, certificados, examen de validación, etc.)."""
+    datos = load_values()
+    texto = _normalize(f"{consulta} {programa or ''}")
+    if "matricula" in texto or "semestre" in texto or rango is not None:
+        m = datos["matricula"]
+        nuevos = m["estudiantes_nuevos"]
+        grupo = _grupo_matricula(f"{programa or ''} {consulta}")
+        grupos = [grupo] if grupo else list(nuevos["grupos"])
+        filas = [f for f in nuevos["rangos"] if rango is None or f["rango"] == int(rango)]
+        if rango is None:
+            filas = [filas[0], filas[-1]]  # sin rango: el mínimo y el máximo
+        valores = [{"rango": f["rango"], "pagina": f["pagina"],
+                    **{nuevos["grupos"][g]: _pesos(f[g]) for g in grupos}} for f in filas]
+        resultado = {
+            "fuente": m["fuente"].split(". Transcrita")[0],
+            "tipo": "matrícula 2027",
+            "estudiantes_nuevos": nuevos["descripcion"],
+            "valores": valores,
+            "estudiantes_antiguos_o_reintegro": m["estudiantes_antiguos_o_reintegro"]["descripcion"],
+        }
+        if rango is None:
+            resultado["aclaracion"] = ("Hay 12 rangos según la información socioeconómica; se muestran el rango 1 (mínimo) "
+                                       "y el 12 (máximo). El rango de cada estudiante lo asigna la Escuela al ingresar.")
+        if "biomed" in texto:
+            resultado["nota_biomedica"] = nuevos["nota_biomedica"]
+        return resultado
+
+    d = datos["derechos_pecuniarios"]
+    palabras = [SINONIMOS_VALORES.get(w, w) for w in texto.replace("?", " ").split()
+                if w not in STOPWORDS_VALORES and len(w) > 2]
+    puntajes = []
+    for item in d["conceptos"]:
+        nombre = _normalize(item["concepto"])
+        score = sum(1 for w in palabras if w[:4] in nombre)  # raíz de 4 letras: "grad" acierta grado y graduación
+        if score:
+            puntajes.append((score, item))
+    mejor = max((s for s, _ in puntajes), default=0)
+    resultados = [{"concepto": i["concepto"], "valor_2027": _pesos(i["valor_2027"]), "valor_2026": _pesos(i["valor_2026"]),
+                   "incremento": i["incremento"], **({"nota": d["notas"][i["nota"]]} if "nota" in i else {})}
+                  for s, i in puntajes if s == mejor]
+    return {
+        "fuente": d["fuente"].split(". Transcrita")[0],
+        "tipo": "derechos pecuniarios 2027",
+        "resultados": resultados,
+        **({} if resultados else {"conceptos_disponibles": [i["concepto"] for i in d["conceptos"]]}),
+    }
+
+
+# ---------------------------------------------------------------- plan de estudios de Ingeniería de Sistemas
+
+ORDINALES = {"primer": 1, "primero": 1, "segundo": 2, "tercer": 3, "tercero": 3, "cuarto": 4, "quinto": 5,
+             "sexto": 6, "septimo": 7, "octavo": 8, "noveno": 9, "decimo": 10}
+STOPWORDS_PLAN = STOPWORDS | {"semestre", "semestres", "creditos", "credito", "materia", "materias", "asignatura",
+                              "asignaturas", "plan", "estudios", "sistemas", "ingenieria", "cuantos", "cuantas",
+                              "tiene", "vale", "valen", "veo", "ven", "como", "nuevo", "antiguo", "anterior", "antes",
+                              "desde", "2025", "2025-1", "programa", "carrera"}
+
+
+def load_study_plans() -> dict:
+    with open(config.STUDY_PLAN_PATH, encoding="utf-8") as file:
+        return json.load(file)
+
+
+def _semestre_pedido(texto: str) -> int | None:
+    m = re.search(r"semestre\s+(\d{1,2})\b|\b(\d{1,2})\s*(?:°|º|er|do|ro|to|vo|no|mo)?\s+semestre", texto)
+    if m:
+        return int(m.group(1) or m.group(2))
+    for palabra, numero in ORDINALES.items():
+        if re.search(rf"\b{palabra}\s+semestre", texto):
+            return numero
+    return None
+
+
+def _plan_pedido(texto: str) -> list[str]:
+    if any(w in texto for w in ("antes", "anterior", "antiguo", "viejo")):
+        return ["antes_2025_1"]
+    if any(w in texto for w in ("nuevo", "desde", "a partir", "actual", "plan 15", "n.° 15")):
+        return ["desde_2025_1"]
+    return ["desde_2025_1", "antes_2025_1"]
+
+
+def consultar_plan_estudios(consulta: str, plan: str | None = None) -> dict:
+    """Asignaturas, semestre y créditos de los planes de estudio de Ingeniería de Sistemas
+    (desde 2025-1 y antes de 2025-1). No incluye prerrequisitos ni otros programas."""
+    datos = load_study_plans()
+    texto = _normalize(consulta)
+    claves = [plan] if plan in datos["planes"] else _plan_pedido(texto)
+    semestre = _semestre_pedido(texto)
+    codigos = {w.upper() for w in re.findall(r"[a-z0-9]{4,6}", texto)}
+    palabras = [w for w in re.findall(r"[a-z0-9]+", texto) if w not in STOPWORDS_PLAN and len(w) > 2]
+    salida = []
+    for clave in claves:
+        p = datos["planes"][clave]
+        asignaturas = p["asignaturas"]
+        if por_codigo := [a for a in asignaturas if a["codigo"] in codigos]:
+            elegidas = por_codigo
+        elif semestre is not None:
+            elegidas = [a for a in asignaturas if a["semestre"] == semestre]
+        else:
+            puntajes = [(sum(1 for w in palabras if w[:5] in _normalize(a["nombre"])), a) for a in asignaturas]
+            mejor = max((s for s, _ in puntajes), default=0)
+            elegidas = [a for s, a in puntajes if mejor and s == mejor]
+        salida.append({
+            "plan": p["nombre"],
+            "resumen": {"total_creditos": p["total_creditos"], "semestres": p["semestres"],
+                        "creditos_por_semestre": p["creditos_por_semestre"], "creditos_por_nucleo": p["creditos_por_nucleo"],
+                        "nota": p["nota_total"]},
+            "asignaturas": [{"codigo": a["codigo"], "nombre": a["nombre"], "creditos": a["creditos"],
+                             "semestre": a["semestre"]} for a in elegidas[:15]],
+        })
+    return {
+        "fuente": "Planes de estudio oficiales de Ingeniería de Sistemas (mallas en PDF de la Escuela)",
+        "planes": salida,
+        "limitaciones": "Solo Ingeniería de Sistemas. No incluye prerrequisitos.",
     }

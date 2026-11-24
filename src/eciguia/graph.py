@@ -27,6 +27,7 @@ from eciguia.retriever import Hit, Retriever, format_context
 Route = Literal["documentos", "herramienta", "fuera_de_alcance"]
 SRC_DIR = Path(__file__).resolve().parents[1]
 PERIOD_HINT = re.compile(r"20\d\d|intersemestral", re.IGNORECASE)
+PLAN_HINT = re.compile(r"2025|antes|anterior|antiguo|viejo|nuevo|actual", re.IGNORECASE)
 
 
 def stdio_transport() -> StdioTransport:
@@ -149,6 +150,9 @@ class EciGuiaAgent:
                 # El modelo tiende a suponer un periodo (p. ej. 2027-1) aunque la pregunta no lo diga, y eso
                 # esconde el evento vigente. Sin periodo, la herramienta devuelve todos y se elige el más próximo.
                 args.pop("periodo", None)
+            if name == "consultar_plan_estudios" and not PLAN_HINT.search(state["question"]):
+                args.pop("plan", None)  # mismo problema: sin pista, se consultan los dos planes
+            args = {k: v for k, v in args.items() if v not in (None, "")}
             result = await client.call_tool(name, args)
             data = result.data if result.data is not None else [c.text for c in result.content if hasattr(c, "text")]
             return {"tool_name": name, "tool_args": args, "tool_result": data}
@@ -165,7 +169,13 @@ class EciGuiaAgent:
         reply = await self.llm.ainvoke(
             prompts.TOOL_ANSWER.format(today=_today(), tool=state["tool_name"], result=result, question=state["question"])
         )
-        source = "Calendario Académico 2027" if state["tool_name"] == "consultar_calendario" else f"Herramienta MCP: {state['tool_name']}"
+        tool_result = state["tool_result"]
+        if state["tool_name"] == "consultar_calendario":
+            source = "Calendario Académico 2027"
+        elif isinstance(tool_result, dict) and tool_result.get("fuente"):
+            source = f"{tool_result['fuente']} (herramienta MCP {state['tool_name']})"
+        else:
+            source = f"Herramienta MCP: {state['tool_name']}"
         return {"answer": _text(reply).strip(), "sources": [source]}
 
     async def reject(self, state: AgentState) -> AgentState:
