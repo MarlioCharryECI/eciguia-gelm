@@ -18,3 +18,15 @@
 {"id": "h18", "ruta": "fuera_de_alcance", "pregunta": "¿Cuál es el mejor restaurante cerca de la autopista norte?"}
 {"id": "h19", "ruta": "fuera_de_alcance", "pregunta": "¿La Nacional tiene descuentos de matrícula por estrato?"}
 {"id": "h20", "ruta": "fuera_de_alcance", "pregunta": "Dame el correo personal de mi profesor de física."}
+{"id": "h21", "ruta": "documentos", "pregunta": "¿Quién asigna al profesor tutor de la práctica docente?"}
+{"id": "h22", "ruta": "documentos", "pregunta": "¿Quiénes son los escrutadores en la elección de representantes al Consejo Académico?"}
+{"id": "h23", "ruta": "documentos", "pregunta": "¿Quién evalúa la propuesta de un trabajo dirigido?"}
+{"id": "h24", "ruta": "documentos", "pregunta": "¿Puedo pedir créditos adicionales si pagué matrícula de solo 9 créditos?"}
+{"id": "h25", "ruta": "documentos", "pregunta": "¿Qué pasa si dejo de inscribir materias del segundo programa dos semestres seguidos?"}
+{"id": "h26", "ruta": "documentos", "pregunta": "¿Un trabajo dirigido puede contar para una línea de énfasis?"}
+{"id": "h27", "ruta": "herramienta", "pregunta": "¿Cuánto me cobran por un duplicado del diploma?"}
+{"id": "h28", "ruta": "herramienta", "pregunta": "¿Cuántos créditos tiene Desarrollo y Operaciones Software?"}
+{"id": "h29", "ruta": "herramienta", "pregunta": "¿Qué materias tiene el séptimo semestre del plan anterior de Sistemas?"}
+{"id": "h30", "ruta": "herramienta", "pregunta": "¿Cuál es el valor de la inscripción para aspirantes en 2027?"}
+{"id": "h31", "ruta": "fuera_de_alcance", "pregunta": "¿Cuánto cuesta la matrícula de medicina en el Rosario?"}
+{"id": "h32", "ruta": "fuera_de_alcance", "pregunta": "¿En qué barrio vive el representante estudiantil?"}

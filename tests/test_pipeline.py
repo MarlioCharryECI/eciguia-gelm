@@ -117,6 +117,23 @@ def test_study_plan_both_versions():
     assert {p["resumen"]["total_creditos"] for p in planes} == {139, 158}
 
 
+def test_tools_refuse_data_they_do_not_have():
+    civil = tools_logic.consultar_plan_estudios("materias de quinto semestre de Ingeniería Civil")
+    assert civil["planes"] == [] and "Civil" in civil["aviso"]
+    # una materia de Sistemas que menciona "Estadística" no es otro programa
+    assert tools_logic.consultar_plan_estudios("Probabilidad y Estadística")["planes"]
+    maestria = tools_logic.consultar_valores_2027("matrícula de una maestría")
+    assert maestria["resultados"] == [] and "PREGRADO" in maestria["aviso"]
+
+
+def test_clean_rag_answer():
+    from eciguia.graph import clean_rag_answer
+
+    answer = "Máximo dos asignaturas [7]. Además [1, 9] aplica.  No encontré esa información en los reglamentos que tengo."
+    assert clean_rag_answer(answer, n_fragments=4) == "Máximo dos asignaturas. Además [1] aplica."
+    assert clean_rag_answer("No encontré esa información en los reglamentos que tengo.", 4).startswith("No encontré")
+
+
 def test_weighted_average():
     result = tools_logic.calcular_promedio_ponderado([{"nota": 4.2, "creditos": 3}, {"nota": 3.5, "creditos": 4}])
     assert result["promedio_exacto"] == 3.8

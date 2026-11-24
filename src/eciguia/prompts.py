@@ -174,7 +174,8 @@ Elige la herramienta adecuada para la pregunta y sus argumentos. Ten en cuenta:
 - En "consulta" usa las palabras con que el calendario nombra el evento: "inicio de clases", "cancelación de asignaturas", "cancelación de semestre", "exámenes finales", "preinscripción", "pago de matrícula", "elaboración de horarios", "envío de práctica profesional", "vacaciones", "ceremonia de grados", "becas".
 - Para promedios, convierte cada materia en {{"nota": número, "creditos": entero}}.
 - Para valores en pesos de 2027 (matrícula, gastos de grado, certificados, validación, inscripción…) usa consultar_valores_2027. Envía "programa" y "rango" solo si el estudiante los dice.
-- Para materias, semestres o créditos de Ingeniería de Sistemas usa consultar_plan_estudios. En "consulta" pon el nombre o código de la materia o el semestre. Envía "plan" solo si el estudiante dice si es el plan nuevo (desde 2025-1) o el anterior.
+- "consulta" es obligatoria en todas las herramientas que la piden; si no sabes qué poner, copia la pregunta.
+- Para materias, semestres o créditos de un plan de estudios usa consultar_plan_estudios. En "consulta" pon el nombre o código de la materia o el semestre. Envía "plan" solo si el estudiante dice si es el plan nuevo (desde 2025-1) o el anterior.
 
 Responde SOLO con JSON: {{"herramienta": "<nombre>", "argumentos": {{...}}}}
 
@@ -191,7 +192,9 @@ Responde la pregunta del estudiante en máximo 4 frases usando solo ese resultad
 - Si es un promedio, da el valor con un decimal (así se expresa el promedio oficial) y el valor exacto entre paréntesis.
 - Si son valores en pesos, cópialos tal cual. Si la matrícula depende del rango y el estudiante no lo dijo, da el mínimo y el máximo y explica que depende del rango socioeconómico; para estudiantes antiguos, menciona el incremento del 7,58 %.
 - Si el resultado trae dos planes de estudio y la pregunta no dice cuál, responde para los dos e indica cuál es cuál (el plan desde 2025-1 y el anterior).
+- Si el resultado trae un "aviso", la respuesta es ese aviso: dilo con tus palabras y no uses otros datos.
 - Si el resultado está vacío o no responde la pregunta, dilo con honestidad.
+- No agregues comentarios, comparaciones ni datos que no estén en el resultado.
 - No escribas la fuente: el sistema la agrega aparte.
 
 Pregunta: {question}
@@ -207,3 +210,5 @@ OUT_OF_SCOPE = (
 )
 
 NO_INFO = "No encontré esa información en los reglamentos que tengo. Te sugiero consultarlo con la decanatura de tu programa."
+# La frase exacta que piden las reglas de los prompts RAG cuando ningún fragmento sirve
+NO_INFO_RAG = "No encontré esa información en los reglamentos que tengo."

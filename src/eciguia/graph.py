@@ -28,6 +28,23 @@ Route = Literal["documentos", "herramienta", "fuera_de_alcance"]
 SRC_DIR = Path(__file__).resolve().parents[1]
 PERIOD_HINT = re.compile(r"20\d\d|intersemestral", re.IGNORECASE)
 PLAN_HINT = re.compile(r"2025|antes|anterior|antiguo|viejo|nuevo|actual", re.IGNORECASE)
+TOOLS_WITH_QUERY = {"consultar_calendario", "consultar_valores_2027", "consultar_plan_estudios"}
+TOOLS_WITH_FULL_QUESTION = {"consultar_valores_2027", "consultar_plan_estudios"}
+CITATION_RE = re.compile(r"\[(\d+(?:\s*[,y]\s*\d+)*)\]")
+
+
+def clean_rag_answer(answer: str, n_fragments: int) -> str:
+    """Correcciones deterministas a la respuesta del LLM, para fallos que el prompt no logra evitar:
+    - quita las citas a fragmentos que no existen (el modelo confunde "numeral 7" con "[7]");
+    - quita el "No encontré..." pegado al final de una respuesta que sí tiene contenido."""
+    def keep_valid(match: re.Match) -> str:
+        numbers = [n for n in re.findall(r"\d+", match.group(1)) if 1 <= int(n) <= n_fragments]
+        return f"[{', '.join(numbers)}]" if numbers else ""
+
+    answer = CITATION_RE.sub(keep_valid, answer)
+    if not answer.startswith("No encontré"):
+        answer = answer.replace(prompts.NO_INFO_RAG, "")
+    return re.sub(r"[ \t]+([.,])", r"\1", re.sub(r"[ \t]{2,}", " ", answer)).strip()
 
 
 def stdio_transport() -> StdioTransport:
@@ -130,7 +147,7 @@ class EciGuiaAgent:
         hits = state["hits"]
         prompt = self.rag_prompt.format(context=format_context(hits), question=state["question"])
         reply = await self.llm.ainvoke(prompt)
-        answer = _text(reply).strip()
+        answer = clean_rag_answer(_text(reply).strip(), len(hits))
         if answer.startswith("No encontré"):  # el modelo no usó el contexto: citar fuentes confundiría
             return {"answer": answer, "sources": []}
         return {"answer": answer, "sources": [f"[{i}] {h.citation}" for i, h in enumerate(hits, 1)]}
@@ -153,6 +170,15 @@ class EciGuiaAgent:
             if name == "consultar_plan_estudios" and not PLAN_HINT.search(state["question"]):
                 args.pop("plan", None)  # mismo problema: sin pista, se consultan los dos planes
             args = {k: v for k, v in args.items() if v not in (None, "")}
+            if name in TOOLS_WITH_QUERY and not args.get("consulta"):
+                # El modelo a veces omite "consulta" (o la deja vacía) en preguntas generales como
+                # "¿cuántos créditos tiene el plan?". La pregunta misma es una buena consulta.
+                args["consulta"] = state["question"]
+            elif name in TOOLS_WITH_FULL_QUESTION:
+                # Al resumir la consulta, el modelo puede perder lo que hace inválida la pregunta
+                # ("quinto semestre" en vez de "quinto semestre de Ingeniería Civil"). Las herramientas
+                # de datos reciben también la pregunta original para poder decir "no tengo ese dato".
+                args["consulta"] = f"{args['consulta']} | {state['question']}"
             result = await client.call_tool(name, args)
             data = result.data if result.data is not None else [c.text for c in result.content if hasattr(c, "text")]
             return {"tool_name": name, "tool_args": args, "tool_result": data}
@@ -163,8 +189,9 @@ class EciGuiaAgent:
 
     async def answer_from_tool(self, state: AgentState) -> AgentState:
         if state.get("tool_result") in (None, [], {}):
-            return {"answer": "No encontré ese dato en el calendario académico 2027 ni pude calcularlo. "
-                              "Revisa el calendario oficial en escuelaing.edu.co.", "sources": []}
+            return {"answer": "No encontré ese dato en mis herramientas (calendario académico 2027, valores 2027 y "
+                              "plan de estudios de Ingeniería de Sistemas) ni pude calcularlo. Revisa la información "
+                              "oficial en escuelaing.edu.co.", "sources": []}
         result = json.dumps(state["tool_result"], ensure_ascii=False, default=str)
         reply = await self.llm.ainvoke(
             prompts.TOOL_ANSWER.format(today=_today(), tool=state["tool_name"], result=result, question=state["question"])

@@ -148,6 +148,11 @@ def consultar_valores_2027(consulta: str, programa: str | None = None, rango: in
     pecuniarios (inscripción, gastos de grado, certificados, examen de validación, etc.)."""
     datos = load_values()
     texto = _normalize(f"{consulta} {programa or ''}")
+    if any(p in texto for p in ("maestr", "posgrad", "especializ", "doctorad")) and "validacion" not in texto:
+        # La resolución de matrícula es solo de pregrado: no se puede responder con valores de pregrado
+        return {"fuente": datos["matricula"]["fuente"].split(". Transcrita")[0], "resultados": [],
+                "aviso": "Solo tengo los valores de matrícula de PREGRADO 2027. No tengo los de maestrías, "
+                         "especializaciones ni doctorados."}
     if "matricula" in texto or "semestre" in texto or rango is not None:
         m = datos["matricula"]
         nuevos = m["estudiantes_nuevos"]
@@ -195,6 +200,27 @@ def consultar_valores_2027(consulta: str, programa: str | None = None, rango: in
 
 # ---------------------------------------------------------------- plan de estudios de Ingeniería de Sistemas
 
+# Nombres de PROGRAMA (no de materia: "Probabilidad y Estadística" o "Matemáticas para Informática" son de Sistemas)
+OTROS_PROGRAMAS = [
+    (r"ingenieria\s+(civil|industrial|electrica|electronica|mecanica|ambiental|biomedica|estadistica)", None),
+    (r"ingenieria\s+(de\s+ciberseguridad|de\s+inteligencia\s+artificial|en\s+biotecnologia)", None),
+    (r"\b(economia|administracion\s+de\s+empresas)\b", None),
+    (r"(programa|carrera)\s+de\s+matematicas", "Matemáticas"),
+]
+
+
+TILDES = {"ingenieria": "Ingeniería", "electrica": "Eléctrica", "electronica": "Electrónica", "mecanica": "Mecánica",
+          "biomedica": "Biomédica", "estadistica": "Estadística", "economia": "Economía",
+          "administracion": "Administración", "biotecnologia": "Biotecnología"}
+
+
+def _otro_programa(texto: str) -> str | None:
+    """Nombre legible del programa (distinto de Sistemas) que menciona la consulta, si menciona alguno."""
+    for patron, nombre in OTROS_PROGRAMAS:
+        if m := re.search(patron, texto):
+            palabras = re.split(r"\s+", m.group(0))
+            return nombre or " ".join(TILDES.get(w, w if w in ("de", "en") else w.capitalize()) for w in palabras)
+    return None
 ORDINALES = {"primer": 1, "primero": 1, "segundo": 2, "tercer": 3, "tercero": 3, "cuarto": 4, "quinto": 5,
              "sexto": 6, "septimo": 7, "octavo": 8, "noveno": 9, "decimo": 10}
 STOPWORDS_PLAN = STOPWORDS | {"semestre", "semestres", "creditos", "credito", "materia", "materias", "asignatura",
@@ -231,6 +257,11 @@ def consultar_plan_estudios(consulta: str, plan: str | None = None) -> dict:
     (desde 2025-1 y antes de 2025-1). No incluye prerrequisitos ni otros programas."""
     datos = load_study_plans()
     texto = _normalize(consulta)
+    otro = _otro_programa(texto)
+    if otro and "sistemas" not in texto:
+        # Solo existe el plan de Sistemas: responder con él una pregunta sobre otro programa sería un error
+        return {"fuente": "Planes de estudio oficiales de Ingeniería de Sistemas", "planes": [],
+                "aviso": f"Solo tengo el plan de estudios de Ingeniería de Sistemas. No tengo el plan de {otro}."}
     claves = [plan] if plan in datos["planes"] else _plan_pedido(texto)
     semestre = _semestre_pedido(texto)
     codigos = {w.upper() for w in re.findall(r"[a-z0-9]{4,6}", texto)}

@@ -18,6 +18,7 @@ import asyncio
 import csv
 import functools
 import json
+import re
 import statistics
 from pathlib import Path
 
@@ -28,6 +29,11 @@ from eciguia.retriever import Retriever, format_context
 
 EVAL_DIR = Path(__file__).parent
 REJECTION_MARKERS = ("Solo puedo ayudarte", "No encontré")
+# En las trampas del set de ampliación la respuesta correcta puede venir de una herramienta que explica su límite
+# ("no incluye prerrequisitos", "solo tengo el plan de Sistemas"), no solo de las dos frases fijas.
+TRAP_MARKERS = REJECTION_MARKERS + ("no incluye", "no tengo", "no cuento con", "no está disponible",
+                                    "no se encuentra", "no dispongo", "solo tengo", "solo cuento", "no hay información")
+GOLDEN_FILES = {"original": "golden_set.jsonl", "ampliacion": "golden_set_ampliacion.jsonl"}
 
 JUDGE_PROMPT = """Eres un evaluador estricto. Compara la respuesta de un asistente con la respuesta esperada.
 
@@ -43,9 +49,20 @@ Evalúa:
 Responde SOLO con JSON: {{"correcta": true|false, "fiel": true|false, "comentario": "<máximo 15 palabras>"}}"""
 
 
-def load_golden() -> list[dict]:
-    with open(EVAL_DIR / "golden_set.jsonl", encoding="utf-8") as file:
+def load_golden(which: str = "original") -> list[dict]:
+    with open(EVAL_DIR / GOLDEN_FILES[which], encoding="utf-8") as file:
         return [json.loads(line) for line in file if line.strip()]
+
+
+def route_ok(item: dict, route: str) -> bool:
+    if "rutas_validas" in item:
+        return route in item["rutas_validas"]
+    return route == item["tipo"] or (item["tipo"] == "trampa" and route in ("documentos", "fuera_de_alcance"))
+
+
+def rejected(item: dict, answer: str) -> bool:
+    markers = TRAP_MARKERS if item["tipo"] == "trampa" else REJECTION_MARKERS
+    return any(m.lower() in answer.lower() for m in markers)
 
 
 @functools.cache
@@ -54,13 +71,21 @@ def article_pages() -> dict[tuple[str, str], tuple[int, int]]:
     spans: dict[tuple[str, str], tuple[int, int]] = {}
     for doc in chunk_documents(load_pages(), "articulo"):
         meta = doc.metadata
-        key = (meta["source"], meta["section"].split(".")[0])
-        first, last = spans.get(key, (meta["page"], meta["page_end"]))
-        spans[key] = (min(first, meta["page"]), max(last, meta["page_end"]))
+        # Los artículos muy cortos se unen al siguiente en un mismo fragmento: se registran todos los que aparecen
+        articles = {meta["section"].split(".")[0]} | set(re.findall(r"(?m)^(Art[ií]culo \d+)\.", doc.page_content))
+        for article in articles:
+            key = (meta["source"], article)
+            first, last = spans.get(key, (meta["page"], meta["page_end"]))
+            spans[key] = (min(first, meta["page"]), max(last, meta["page_end"]))
     return spans
 
 
-def _is_expected(meta: dict, item: dict, exact: bool = False) -> bool:
+def _sections_in(meta: dict, content: str) -> set[str]:
+    """Artículos que contiene un fragmento: el de su sección y los que se le unieron por ser cortos."""
+    return {meta.get("section", "").split(".")[0]} | set(re.findall(r"(?m)^(Art[ií]culo \d+)\.", content))
+
+
+def _is_expected(meta: dict, item: dict, exact: bool = False, content: str = "") -> bool:
     """¿El fragmento es del documento y artículo esperados?
 
     Por defecto el criterio es por páginas: el fragmento cuenta si es del documento esperado y cae en las
@@ -75,7 +100,7 @@ def _is_expected(meta: dict, item: dict, exact: bool = False) -> bool:
     if not section:
         return True
     if exact:
-        return meta.get("section", "").split(".")[0] == section
+        return section in _sections_in(meta, content)
     first, last = article_pages()[(item["fuente"], section)]
     return first <= meta["page"] <= last
 
@@ -87,7 +112,7 @@ def retrieval_metrics(retriever: Retriever, item: dict, strategy: str) -> dict:
     return {
         "hit_retriever": any(_is_expected(doc.metadata, item) for doc, _ in raw),
         "hit_con_umbral": any(_is_expected(doc.metadata, item) for doc, d in raw if d <= retriever.max_distance),
-        "hit_articulo_exacto": any(_is_expected(doc.metadata, item, exact=True) for doc, _ in raw)
+        "hit_articulo_exacto": any(_is_expected(doc.metadata, item, exact=True, content=doc.page_content) for doc, _ in raw)
         if strategy == "articulo" else None,
     }
 
@@ -110,16 +135,14 @@ async def run(args) -> None:
     judge_llm = default_llm(json_mode=True, model=args.judge_model) if args.judge_model else agent.json_llm
     rows = []
 
-    for item in load_golden():
+    for item in load_golden(args.golden):
         state = await agent.ask(item["pregunta"])
-        expected_route = item["tipo"]
         row = {
             "id": item["id"],
             "tipo": item["tipo"],
             "pregunta": item["pregunta"],
             "ruta": state["route"],
-            "ruta_correcta": state["route"] == expected_route
-            or (expected_route == "trampa" and state["route"] in ("documentos", "fuera_de_alcance")),
+            "ruta_correcta": route_ok(item, state["route"]),
             "herramienta": state.get("tool_name", ""),
             "respuesta": state["answer"],
             "fuentes": " | ".join(state.get("sources", [])),
@@ -132,7 +155,7 @@ async def run(args) -> None:
         if item["tipo"] == "herramienta":
             row["herramienta_correcta"] = state.get("tool_name") == item["herramienta"]
         if item["tipo"] in ("fuera_de_alcance", "trampa"):
-            row["rechazo_correcto"] = any(m in state["answer"] for m in REJECTION_MARKERS)
+            row["rechazo_correcto"] = rejected(item, state["answer"])
         if args.judge and item["tipo"] in ("documentos", "herramienta"):
             verdict = await judge(judge_llm, item, state)
             row["correcta"] = verdict.get("correcta")
@@ -161,7 +184,7 @@ def recompute_retrieval(name: str) -> None:
         rows = list(csv.DictReader(file))
     strategy = summary["config"]["chunking"]
     retriever = Retriever(strategy=strategy)
-    golden = {item["id"]: item for item in load_golden()}
+    golden = {item["id"]: item for which in GOLDEN_FILES for item in load_golden(which)}
     for row in rows:
         if row["tipo"] == "documentos":
             row.update(retrieval_metrics(retriever, golden[row["id"]], strategy))
@@ -196,7 +219,8 @@ def summarize(rows: list[dict], args) -> dict:
     return {
         "corrida": args.name,
         "config": {"chunking": args.strategy, "prompt": args.prompt,
-                   "router": None if args.baseline else args.router, "juez": args.judge_model or "mismo LLM"},
+                   "router": None if args.baseline else args.router, "juez": args.judge_model or "mismo LLM",
+                   "set": args.golden},
         "n": len(rows),
         "hit@k_retriever": rate(rows, "hit_retriever"),
         "hit@k_con_umbral": rate(rows, "hit_con_umbral"),
@@ -213,9 +237,11 @@ def summarize(rows: list[dict], args) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--name", default="final")
+    parser.add_argument("--golden", default="original", choices=list(GOLDEN_FILES),
+                        help="set de preguntas: original (40) o ampliacion (segunda etapa)")
     parser.add_argument("--strategy", default="articulo", choices=["articulo", "fijo"])
     parser.add_argument("--prompt", default="v3", choices=list(prompts.RAG_PROMPTS), help="versión del prompt RAG")
-    parser.add_argument("--router", default="v2", choices=list(prompts.ROUTER_PROMPTS), help="versión del prompt del router")
+    parser.add_argument("--router", default="v3", choices=list(prompts.ROUTER_PROMPTS), help="versión del prompt del router")
     parser.add_argument("--baseline", action="store_true", help="sin router ni herramientas: todo va al RAG")
     parser.add_argument("--no-judge", dest="judge", action="store_false", help="no usar LLM como juez")
     parser.add_argument("--judge-model", default=None, help="modelo de Ollama para el juez (por defecto, el mismo que responde)")

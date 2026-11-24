@@ -1,9 +1,10 @@
 """Calibra el umbral de relevancia del retriever (MAX_DISTANCE) con datos.
 
 Para cada pregunta mide la distancia coseno del mejor fragmento recuperado y compara dos grupos:
-- positivas: las 25 preguntas de tipo "documentos" del set de evaluación (la respuesta sí está).
-- negativas: las 7 "fuera_de_alcance" y "trampa" del set, más 20 de eval/calibracion_negativas.jsonl
-  (preguntas que suenan a la Escuela pero cuya respuesta no está en los 6 documentos).
+- positivas: las preguntas de tipo "documentos" de los sets de evaluación (la respuesta sí está).
+- negativas: las "fuera_de_alcance" y "trampa" de los sets, más 20 de eval/calibracion_negativas.jsonl
+  (preguntas que suenan a la Escuela pero cuya respuesta no está en los documentos).
+Con la segunda etapa (golden_set_ampliacion.jsonl) son 39 positivas y 31 negativas.
 
 Criterio: el umbral más estricto que deja pasar TODAS las positivas, más un margen de 0,02 para
 preguntas redactadas distinto. Los errores no cuestan lo mismo: una positiva bloqueada termina en
@@ -111,6 +112,8 @@ def main() -> None:
 
     retriever = Retriever(strategy=args.strategy)
     golden = load_jsonl(EVAL_DIR / "golden_set.jsonl")
+    if (EVAL_DIR / "golden_set_ampliacion.jsonl").exists():  # segunda etapa: más documentos, más positivas
+        golden += load_jsonl(EVAL_DIR / "golden_set_ampliacion.jsonl")
     negatives = load_jsonl(EVAL_DIR / "calibracion_negativas.jsonl")
     rows = []
     for item in golden:
