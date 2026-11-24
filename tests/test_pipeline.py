@@ -32,8 +32,16 @@ def agent(pages, tmp_path_factory):
     return EciGuiaAgent(llm=ScriptedLLM(), retriever=retriever, mcp_target=mcp)
 
 
+ORIGINAL_DOCUMENTS = {
+    "modificacion_reglamento_estudiantil_2025.pdf", "reglamento_practicas_profesionales.pdf",
+    "lineamientos_opcion_de_grado.pdf", "reglamento_trabajos_dirigidos.pdf",
+    "reglamento_movilidad_estudiantil.pdf", "reglamento_ingles_2025.pdf",
+}
+
+
 def test_loads_all_documents(pages):
-    assert len({p.source for p in pages}) == 6
+    # Los 6 documentos de la primera etapa se siguen cargando aunque el corpus crezca
+    assert ORIGINAL_DOCUMENTS <= {p.source for p in pages}
 
 
 @pytest.mark.parametrize("strategy", ["articulo", "fijo"])

@@ -1,0 +1,60 @@
+{
+  "matricula": {
+    "fuente": "Resolución de Rectoría N.° 014 de 2026 (18 de agosto de 2026), Derechos de Matrícula 2027 para los Programas de Pregrado. Transcrita de data/fuentes_tabulares/matricula_pregrado_2027.pdf el 24/11/2026.",
+    "estudiantes_nuevos": {
+      "descripcion": "El valor de la matrícula para el año 2027 será diferencial por programa académico de pregrado y por categorías (rangos), según la información socioeconómica del grupo familiar, con un incremento del 7,58 %.",
+      "grupos": {
+        "ingenierias": "Ingenierías (no incluye Ingeniería Biomédica)",
+        "economia_administracion": "Economía y Administración de Empresas",
+        "matematicas": "Matemáticas"
+      },
+      "rangos": [
+        {"rango": 1, "ingenierias": 7961000, "economia_administracion": 7961000, "matematicas": 7961000, "pagina": 1},
+        {"rango": 2, "ingenierias": 8768000, "economia_administracion": 8369500, "matematicas": 8057500, "pagina": 1},
+        {"rango": 3, "ingenierias": 9574500, "economia_administracion": 8778500, "matematicas": 8154500, "pagina": 1},
+        {"rango": 4, "ingenierias": 10381500, "economia_administracion": 9187500, "matematicas": 8251500, "pagina": 1},
+        {"rango": 5, "ingenierias": 11188500, "economia_administracion": 9596000, "matematicas": 8348000, "pagina": 1},
+        {"rango": 6, "ingenierias": 11995000, "economia_administracion": 10005000, "matematicas": 8445000, "pagina": 1},
+        {"rango": 7, "ingenierias": 12802000, "economia_administracion": 10413500, "matematicas": 8542000, "pagina": 1},
+        {"rango": 8, "ingenierias": 13609000, "economia_administracion": 10822500, "matematicas": 8638500, "pagina": 2},
+        {"rango": 9, "ingenierias": 14415500, "economia_administracion": 11231500, "matematicas": 8735500, "pagina": 2},
+        {"rango": 10, "ingenierias": 15222500, "economia_administracion": 11640000, "matematicas": 8832500, "pagina": 2},
+        {"rango": 11, "ingenierias": 16029500, "economia_administracion": 12049000, "matematicas": 8929000, "pagina": 2},
+        {"rango": 12, "ingenierias": 16782500, "economia_administracion": 12479500, "matematicas": 9036500, "pagina": 2}
+      ],
+      "nota_biomedica": "El valor de los derechos de matrícula para el Programa de Ingeniería Biomédica corresponde al máximo valor en los programas de ingeniería ofrecidos por la Universidad."
+    },
+    "estudiantes_antiguos_o_reintegro": {
+      "descripcion": "En el año 2027, tanto para los estudiantes antiguos como para aquellos que se reintegren, el valor de la matrícula se incrementará en un 7,58 % con respecto al valor vigente en 2026, de acuerdo con la estimación de costos de la universidad para la vigencia 2027.",
+      "incremento": "7,58 %",
+      "matricula_maxima": {"ingenierias": 16782500, "economia_administracion": 12479500, "matematicas": 9036500},
+      "pagina": 2
+    }
+  },
+  "derechos_pecuniarios": {
+    "fuente": "Resolución de Rectoría N.° 016 de 2026 (18 de agosto de 2026), Derechos Pecuniarios 2027. Transcrita de data/fuentes_tabulares/derechos_pecuniarios_2027.pdf el 24/11/2026.",
+    "conceptos": [
+      {"concepto": "Valor de la inscripción", "valor_2026": 116000, "valor_2027": 125000, "incremento": "7,8 %"},
+      {"concepto": "Gastos de grado", "valor_2026": 910000, "valor_2027": 979000, "incremento": "7,6 %"},
+      {"concepto": "Valor de expedición de constancias", "valor_2026": 19000, "valor_2027": 20500, "incremento": "7,9 %"},
+      {"concepto": "Valor de certificados de calificaciones", "valor_2026": 41000, "valor_2027": 44000, "incremento": "7,3 %"},
+      {"concepto": "Examen de validación de pregrado", "valor_2026": 969000, "valor_2027": 1042500, "incremento": "7,6 %"},
+      {"concepto": "Examen de validación de posgrado", "valor_2026": 969000, "valor_2027": 1042500, "incremento": "7,6 %"},
+      {"concepto": "Examen de inglés Oxford on line placement test (convocatoria de Vicerrectoría Académica sin costo)", "valor_2026": 33000, "valor_2027": 35500, "incremento": "7,6 %", "nota": "1"},
+      {"concepto": "Duplicado de diploma", "valor_2026": 316000, "valor_2027": 340000, "incremento": "7,6 %"},
+      {"concepto": "Inscripción curso preparación mercado laboral", "valor_2026": 1210000, "valor_2027": 1301500, "incremento": "7,6 %", "nota": "2"},
+      {"concepto": "Inscripción taller desarrollo profesoral para estudiantes", "valor_2026": 347000, "valor_2027": 373500, "incremento": "7,6 %", "nota": "2"},
+      {"concepto": "Preuniversitario", "valor_2026": 6550000, "valor_2027": 7046500, "incremento": "7,6 %"},
+      {"concepto": "Inmersión parcial: colegio con pensión hasta $500.000", "valor_2026": 620000, "valor_2027": 667100, "incremento": "7,6 %"},
+      {"concepto": "Inmersión parcial: colegio con pensión mayor a $500.000", "valor_2026": 1080000, "valor_2027": 1162100, "incremento": "7,6 %"},
+      {"concepto": "Inmersión total: colegio con pensión hasta $500.000", "valor_2026": 1080000, "valor_2027": 1162000, "incremento": "7,6 %"},
+      {"concepto": "Inmersión total: colegio con pensión mayor a $500.000", "valor_2026": 1750000, "valor_2027": 1883000, "incremento": "7,6 %"}
+    ],
+    "notas": {
+      "1": "La primera inscripción al curso no tiene costo.",
+      "2": "El primer examen no tiene costo. Sí el estudiante solicita presentarlo nuevamente, asumirá el costo."
+    },
+    "observacion_transcripcion": "En el documento original las notas 1 y 2 parecen intercambiadas (la nota 1, sobre un curso, está en el examen Oxford; la nota 2, sobre un examen, está en el curso y el taller). Se transcribieron tal cual; no se corrigieron.",
+    "pagina": 1
+  }
+}

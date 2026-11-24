@@ -20,6 +20,8 @@ htmlcov/
 # Los resultados finales que cita el notebook se copian a docs/resultados/, que sí se versiona.
 data/chroma/
 eval/results/
+# PDF retirados del corpus a propósito (duplicados o que generan confusión); se guardan solo en local
+data/descartados/
 
 # Notebooks y apps
 .ipynb_checkpoints/

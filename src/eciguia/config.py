@@ -35,4 +35,25 @@ DOCUMENT_TITLES = {
     "reglamento_trabajos_dirigidos.pdf": "Reglamento de Trabajos Dirigidos",
     "reglamento_movilidad_estudiantil.pdf": "Reglamento de Movilidad Estudiantil de Pregrado",
     "reglamento_ingles_2025.pdf": "Reglamento de Inglés (2025)",
+    # Segunda etapa (24/11/2026)
+    "condiciones_doble_programa_2026.pdf": "Condiciones de la Intención de Doble Programa (Consejo Académico, Acta 382 de 2026)",
+    "lineamientos_practica_docente_2023.pdf": "Lineamientos para Práctica Docente (2023)",
+    "reglamento_lineas_de_enfasis.pdf": "Reglamento de Certificación de Líneas de Énfasis en los Programas de Pregrado",
+    # Transcripciones de PDF escaneados (data/transcripciones/)
+    "lineamientos_cancelacion_asignaturas_2025.md": "Lineamientos para la Cancelación de Asignaturas (Acuerdos 02 de 2017 y 001 de 2025)",
+    "lineamientos_creditos_adicionales.md": "Lineamientos para la Asignación de Créditos Académicos Adicionales (Acuerdo 01 de 2017)",
+    "participacion_consejos_2017.md": "Régimen de Participación de Estudiantes en los Consejos Directivo y Académico (Acuerdo 70 de 2017)",
+    "participacion_comites_asesores_2017.md": "Régimen de Participación de Estudiantes en los Comités Asesores de Programa (Acuerdo 71 de 2017)",
 }
+
+# Páginas que no se indexan: listas de asistentes de las actas (nombres propios, sin contenido normativo)
+SKIP_PAGES = {
+    "condiciones_doble_programa_2026.pdf": {1},
+}
+
+# Transcripciones de PDF escaneados o mixtos. La ingesta usa la transcripción en vez del texto del PDF.
+TRANSCRIPTIONS_DIR = ROOT / "data" / "transcripciones"
+
+# Datos tabulares que se consultan con herramientas MCP (no con RAG)
+VALUES_PATH = ROOT / "data" / "valores_2027.json"
+STUDY_PLAN_PATH = ROOT / "data" / "plan_estudios_sistemas.json"
