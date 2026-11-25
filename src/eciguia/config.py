@@ -19,6 +19,9 @@ EMBED_MODEL = os.getenv("ECIGUIA_EMBED", "bge-m3")
 # Embeber solo la consulta en CPU tarda ~0,1 s y deja la GPU para el LLM. La ingesta sí usa GPU.
 EMBED_QUERY_ON_CPU = os.getenv("ECIGUIA_EMBED_QUERY_ON_CPU", "1") == "1"
 KEEP_ALIVE = int(os.getenv("ECIGUIA_KEEP_ALIVE", "1800"))  # segundos que Ollama mantiene cargados los modelos
+# Tiempo máximo por llamada a Ollama. En una GPU de 6 GB, Ollama a veces se traba después de cargas pesadas
+# (por ejemplo, justo después de reconstruir el índice); sin límite, la app se quedaría "cargando" para siempre.
+OLLAMA_TIMEOUT = float(os.getenv("ECIGUIA_OLLAMA_TIMEOUT", "180"))
 
 CHUNK_STRATEGY = os.getenv("ECIGUIA_CHUNKING", "articulo")  # "articulo" o "fijo"
 TOP_K = int(os.getenv("ECIGUIA_TOP_K", "4"))

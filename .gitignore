@@ -41,3 +41,4 @@ desktop.ini
 # Varios
 *.log
 *.zip
+.playwright-mcp/

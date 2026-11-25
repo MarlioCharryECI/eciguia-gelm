@@ -2,7 +2,16 @@
 
 Asistente académico para estudiantes de pregrado de la Escuela Colombiana de Ingeniería Julio Garavito. Responde dudas sobre prácticas profesionales y práctica docente, opción de grado, trabajos dirigidos, movilidad, inglés, doble programa, créditos adicionales, cancelación de asignaturas, líneas de énfasis y representación estudiantil (13 documentos oficiales), además del calendario académico 2027, los valores de matrícula y derechos pecuniarios 2027 y el plan de estudios de Ingeniería de Sistemas. Cita el documento y la página de donde sale cada dato. Si algo no está en los documentos, lo dice. Todo corre en local con Ollama, gratis y sin enviar datos a terceros.
 
-Proyecto final de GELM (IA Generativa), 2026-2. El informe completo está en [`proyecto.ipynb`](proyecto.ipynb).
+Proyecto final de GELM (IA Generativa), 2026-2, de Marlio José Charry Espitia.
+
+- **Informe:** [`proyecto.ipynb`](proyecto.ipynb). Se puede leer en GitHub con todas las salidas, o ejecutar con *Restart & Run All*, también sin Ollama.
+- **Video:** *(enlace pendiente)*
+
+| Pregunta sobre reglamentos (RAG con citas) | Pregunta que usa una herramienta MCP |
+| --- | --- |
+| ![Respuesta con citas al Acuerdo 01 de 2017](docs/img/app_documentos.png) | ![Respuesta con la herramienta de valores 2027](docs/img/app_herramienta.png) |
+
+Debajo de cada respuesta la app muestra por qué ruta pasó la pregunta, qué herramienta usó, de qué documento y página sale cada dato y cuánto tardó.
 
 ## Cómo funciona
 
@@ -111,6 +120,40 @@ uv run python eval/compare_router.py                # versiones del router en 32
 ```
 
 Cada experimento cambia una sola cosa respecto al anterior. Métricas: hit@4 del retriever, ruteo correcto, herramienta correcta, rechazo correcto, acierto y fidelidad (LLM como juez, validado a mano) y latencia mediana. El detalle queda en `eval/results/` y los resúmenes finales en `docs/resultados/`.
+
+## Estructura del repositorio
+
+```
+├── app.py                     # interfaz web (Gradio)
+├── proyecto.ipynb             # informe de entrega (notebook)
+├── src/eciguia/
+│   ├── config.py              # parámetros (modelos, umbral, rutas), editables con .env
+│   ├── ingest.py              # extracción de PDF y transcripciones, chunking e índice Chroma
+│   ├── retriever.py           # búsqueda con umbral de relevancia y formato de citas
+│   ├── graph.py               # agente LangGraph: router, RAG, herramientas, rechazo
+│   ├── prompts.py             # prompts versionados (ROUTER_V1..V3, RAG_ANSWER_BASICO..V3)
+│   ├── mcp_server.py          # servidor MCP (FastMCP) con 5 herramientas
+│   └── tools_logic.py         # lógica de las herramientas (calendario, promedio, valores, plan)
+├── data/
+│   ├── raw/                   # PDF oficiales que se indexan
+│   ├── transcripciones/       # transcripción de los PDF escaneados
+│   ├── fuentes_tabulares/     # PDF de tablas (matrícula, derechos, planes)
+│   ├── calendario_2027.json, valores_2027.json, plan_estudios_sistemas.json
+├── eval/                      # sets de preguntas, evaluación, calibración, regresión, ruteo
+├── docs/
+│   ├── resultados/            # resúmenes de todas las corridas, gráficas y validaciones
+│   ├── img/                   # capturas de la app
+│   └── guion_video.md
+├── tests/                     # pruebas sin Ollama (uv run pytest)
+└── PLAN.md                    # plan de trabajo y decisiones del proyecto
+```
+
+## Problemas frecuentes
+
+- **La app se queda "cargando" o responde con un error de tiempo agotado.** En GPUs de 6 GB, Ollama a veces se traba después de cargas pesadas, por ejemplo justo después de reconstruir el índice. Reinicia Ollama (ciérralo desde la bandeja del sistema y ábrelo de nuevo) y vuelve a preguntar. Cada llamada tiene un límite de 180 s (`ECIGUIA_OLLAMA_TIMEOUT`), así que la app avisa en vez de quedarse esperando.
+- **La primera pregunta tarda mucho más que las siguientes.** Es la carga inicial de los modelos y del servidor MCP. Haz una pregunta de calentamiento antes de una demo.
+- **Tildes raras en la terminal de Windows.** Ejecuta `$env:PYTHONUTF8=1` en PowerShell antes de los comandos.
+- **"El índice está vacío".** Falta construirlo: `uv run python -m eciguia.ingest`.
 
 ## Pruebas
 

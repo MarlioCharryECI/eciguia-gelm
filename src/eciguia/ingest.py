@@ -226,7 +226,8 @@ def get_embeddings(for_query: bool = False):
 
     cpu = for_query and config.EMBED_QUERY_ON_CPU
     return OllamaEmbeddings(model=config.EMBED_MODEL, base_url=config.OLLAMA_BASE_URL,
-                            keep_alive=config.KEEP_ALIVE, num_gpu=0 if cpu else None)
+                            keep_alive=config.KEEP_ALIVE, num_gpu=0 if cpu else None,
+                            client_kwargs={"timeout": config.OLLAMA_TIMEOUT})
 
 
 def collection_name(strategy: str) -> str:

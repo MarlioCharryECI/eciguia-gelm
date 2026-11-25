@@ -4,6 +4,7 @@ Rúbrica: el video debe durar entre 5 y 10 minutos, explicar el proyecto con cla
 
 ## Antes de grabar (lista de chequeo)
 
+- [ ] **Reiniciar Ollama** (cerrarlo desde la bandeja y abrirlo) si se usó mucho el PC antes, por ejemplo con evaluaciones o la ingesta: en esta GPU a veces se traba después de cargas pesadas.
 - [ ] Ollama abierto. Precargar el modelo para que la primera respuesta no tarde 1 minuto: `ollama run qwen2.5:7b "hola"` y salir con `/bye`.
 - [ ] `$env:PYTHONUTF8=1; uv run python app.py` y abrir http://localhost:7860. Hacer una pregunta de calentamiento **antes** de grabar (la primera carga el servidor MCP y los embeddings).
 - [ ] Tener abiertos en pestañas: `proyecto.ipynb` (ya ejecutado), `docs/resultados/calibracion.png`, `docs/resultados/grafo.png`, `src/eciguia/prompts.py`.

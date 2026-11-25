@@ -191,6 +191,14 @@ Las reglas de la primera etapa siguen vigentes. Además: **Claude no hace commit
 
 **Criterios de aceptación: todos cumplidos.**
 
+**Estado de la fase 9 (24/11): hecha la parte de Claude; faltan los comandos del usuario.**
+- `eciguia.zip` sacado del índice (`git rm --cached`).
+- Prueba de clon limpio desde GitHub superada: `uv sync`, 20 pruebas, ingesta, pregunta por terminal y notebook sin Ollama.
+- Capturas en `docs/img/`.
+- README final: capturas, estructura del repositorio y problemas frecuentes.
+- Límite de tiempo para las llamadas a Ollama (`ECIGUIA_OLLAMA_TIMEOUT`, 180 s): durante la fase Ollama se trabó dos veces después de cargas pesadas, y sin límite la app quedaba "cargando" para siempre.
+- Pendiente del usuario: commit y push, `gh repo edit`, etiqueta y release.
+
 **Cosas para avisar al usuario (no corregidas):**
 - RR016: las notas al pie 1 y 2 parecen intercambiadas en el documento original.
 - Cancelación: el Acuerdo 02 de 2017 dice semana 12 (con extemporáneas en las semanas 13 a 16), y el Acuerdo 001 de 2025 lo prorroga hasta el sábado de la semana 15 "del año en curso". Para fechas concretas manda el calendario (2027-1: 8 de mayo).

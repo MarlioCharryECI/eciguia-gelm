@@ -90,6 +90,7 @@ def default_llm(json_mode: bool = False, model: str | None = None):
         base_url=config.OLLAMA_BASE_URL,
         temperature=0,
         keep_alive=config.KEEP_ALIVE,
+        client_kwargs={"timeout": config.OLLAMA_TIMEOUT},
         format="json" if json_mode else None,
     )
 
