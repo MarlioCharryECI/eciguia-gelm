@@ -174,6 +174,23 @@ Las reglas de la primera etapa siguen vigentes. Además: **Claude no hace commit
 - Prueba de humo (14 preguntas): rutas y herramientas correctas, y la regresión de d18 quedó corregida.
 - Pendiente para la fase 8: una cita inventada ("[7]") en cancelación, y las pruebas Saber Pro mencionadas como requisito de ingreso al doble programa.
 
+**Estado de la fase 8 (24/11): terminada.**
+- El usuario revisó y aprobó el set de ampliación (26 preguntas).
+- Umbral recalibrado: se mantiene en 0,45 (39 positivas pasan, 77 % de 31 negativas bloqueadas).
+- Iteración 1 de correcciones, en código y con pruebas:
+  - `consulta` faltante en las llamadas a herramientas.
+  - Pregunta original para las herramientas de datos.
+  - Avisos de "no tengo ese dato" (otro programa, posgrado).
+  - Citas fuera de rango eliminadas.
+  - "No encontré" pegado al final de una respuesta, eliminado.
+  - Respuesta de herramientas sin comentarios inventados.
+- Corridas finales `8_final_original` y `8_final_nuevas`, todo al 100 % excepto fidelidad 96 % en las nuevas. Revisión humana: 33/33 y 22/22 correctas, 12/12 rechazos.
+- **0 regresiones** frente a `6_final`.
+- Router en el set aparte (32 preguntas): V1 81 %, V2 84 %, V3 97 %.
+- Notebook (secciones 3.8 y 4.7, conclusión) y README actualizados.
+
+**Criterios de aceptación: todos cumplidos.**
+
 **Cosas para avisar al usuario (no corregidas):**
 - RR016: las notas al pie 1 y 2 parecen intercambiadas en el documento original.
 - Cancelación: el Acuerdo 02 de 2017 dice semana 12 (con extemporáneas en las semanas 13 a 16), y el Acuerdo 001 de 2025 lo prorroga hasta el sábado de la semana 15 "del año en curso". Para fechas concretas manda el calendario (2027-1: 8 de mayo).

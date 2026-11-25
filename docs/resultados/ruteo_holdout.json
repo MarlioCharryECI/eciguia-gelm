@@ -1,148 +1,265 @@
 {
   "exactitud": {
-    "v1": 1.0,
-    "v2": 1.0
+    "v1": 0.812,
+    "v2": 0.844,
+    "v3": 0.969
   },
   "preguntas": [
     {
       "id": "h01",
       "esperada": "documentos",
       "pregunta": "¿Cuánto pago de matrícula si hago una pasantía de investigación en el exterior?",
-      "v1": "documentos",
-      "v2": "documentos"
+      "v1": "fuera_de_alcance",
+      "v2": "documentos",
+      "v3": "documentos"
     },
     {
       "id": "h02",
       "esperada": "documentos",
       "pregunta": "¿Me cobran la matrícula completa si estoy haciendo práctica social?",
       "v1": "documentos",
-      "v2": "documentos"
+      "v2": "documentos",
+      "v3": "documentos"
     },
     {
       "id": "h03",
       "esperada": "documentos",
       "pregunta": "¿Qué promedio necesito para aplicar a doble titulación?",
       "v1": "documentos",
-      "v2": "documentos"
+      "v2": "documentos",
+      "v3": "documentos"
     },
     {
       "id": "h04",
       "esperada": "documentos",
       "pregunta": "¿Quién califica el trabajo dirigido?",
       "v1": "documentos",
-      "v2": "documentos"
+      "v2": "documentos",
+      "v3": "documentos"
     },
     {
       "id": "h05",
       "esperada": "documentos",
       "pregunta": "¿Puedo homologar materias que vi en otra universidad?",
       "v1": "documentos",
-      "v2": "documentos"
+      "v2": "documentos",
+      "v3": "documentos"
     },
     {
       "id": "h06",
       "esperada": "documentos",
       "pregunta": "Si me voy de intercambio a México, ¿qué tengo que pagar en la Escuela?",
       "v1": "documentos",
-      "v2": "documentos"
+      "v2": "documentos",
+      "v3": "documentos"
     },
     {
       "id": "h07",
       "esperada": "documentos",
       "pregunta": "¿El TOEFL sirve para el requisito de inglés?",
       "v1": "documentos",
-      "v2": "documentos"
+      "v2": "documentos",
+      "v3": "documentos"
     },
     {
       "id": "h08",
       "esperada": "documentos",
       "pregunta": "¿Cuántas materias puedo ver mientras estoy en práctica?",
       "v1": "documentos",
-      "v2": "documentos"
+      "v2": "documentos",
+      "v3": "documentos"
     },
     {
       "id": "h09",
       "esperada": "herramienta",
       "pregunta": "¿Hasta qué día tengo para pagar la matrícula sin recargo para 2027-2?",
       "v1": "herramienta",
-      "v2": "herramienta"
+      "v2": "herramienta",
+      "v3": "herramienta"
     },
     {
       "id": "h10",
       "esperada": "herramienta",
       "pregunta": "¿Cuándo es el pago extraordinario de matrícula del primer semestre?",
       "v1": "herramienta",
-      "v2": "herramienta"
+      "v2": "herramienta",
+      "v3": "herramienta"
     },
     {
       "id": "h11",
       "esperada": "herramienta",
       "pregunta": "¿Qué día arrancan las clases del intersemestral?",
       "v1": "herramienta",
-      "v2": "herramienta"
+      "v2": "herramienta",
+      "v3": "herramienta"
     },
     {
       "id": "h12",
       "esperada": "herramienta",
       "pregunta": "¿Cuántos días faltan para los exámenes finales?",
       "v1": "herramienta",
-      "v2": "herramienta"
+      "v2": "herramienta",
+      "v3": "herramienta"
     },
     {
       "id": "h13",
       "esperada": "herramienta",
       "pregunta": "Tengo 3.2 en Cálculo (4 créditos) y 4.0 en Física (3 créditos), ¿cuál es mi promedio?",
       "v1": "herramienta",
-      "v2": "herramienta"
+      "v2": "herramienta",
+      "v3": "herramienta"
     },
     {
       "id": "h14",
       "esperada": "herramienta",
       "pregunta": "¿Cuándo es la ceremonia de grados del segundo semestre de 2027?",
       "v1": "herramienta",
-      "v2": "herramienta"
+      "v2": "herramienta",
+      "v3": "herramienta"
     },
     {
       "id": "h15",
       "esperada": "fuera_de_alcance",
       "pregunta": "¿Cuánto vale el semestre de medicina en la Javeriana?",
       "v1": "fuera_de_alcance",
-      "v2": "fuera_de_alcance"
+      "v2": "fuera_de_alcance",
+      "v3": "fuera_de_alcance"
     },
     {
       "id": "h16",
       "esperada": "fuera_de_alcance",
       "pregunta": "¿Qué computador me recomiendas comprar para la carrera?",
       "v1": "fuera_de_alcance",
-      "v2": "fuera_de_alcance"
+      "v2": "fuera_de_alcance",
+      "v3": "fuera_de_alcance"
     },
     {
       "id": "h17",
       "esperada": "fuera_de_alcance",
       "pregunta": "Resuélveme este ejercicio de derivadas: x^2 sen(x)",
       "v1": "fuera_de_alcance",
-      "v2": "fuera_de_alcance"
+      "v2": "fuera_de_alcance",
+      "v3": "fuera_de_alcance"
     },
     {
       "id": "h18",
       "esperada": "fuera_de_alcance",
       "pregunta": "¿Cuál es el mejor restaurante cerca de la autopista norte?",
       "v1": "fuera_de_alcance",
-      "v2": "fuera_de_alcance"
+      "v2": "fuera_de_alcance",
+      "v3": "fuera_de_alcance"
     },
     {
       "id": "h19",
       "esperada": "fuera_de_alcance",
       "pregunta": "¿La Nacional tiene descuentos de matrícula por estrato?",
       "v1": "fuera_de_alcance",
-      "v2": "fuera_de_alcance"
+      "v2": "fuera_de_alcance",
+      "v3": "documentos"
     },
     {
       "id": "h20",
       "esperada": "fuera_de_alcance",
       "pregunta": "Dame el correo personal de mi profesor de física.",
       "v1": "fuera_de_alcance",
-      "v2": "fuera_de_alcance"
+      "v2": "fuera_de_alcance",
+      "v3": "fuera_de_alcance"
+    },
+    {
+      "id": "h21",
+      "esperada": "documentos",
+      "pregunta": "¿Quién asigna al profesor tutor de la práctica docente?",
+      "v1": "documentos",
+      "v2": "documentos",
+      "v3": "documentos"
+    },
+    {
+      "id": "h22",
+      "esperada": "documentos",
+      "pregunta": "¿Quiénes son los escrutadores en la elección de representantes al Consejo Académico?",
+      "v1": "fuera_de_alcance",
+      "v2": "fuera_de_alcance",
+      "v3": "documentos"
+    },
+    {
+      "id": "h23",
+      "esperada": "documentos",
+      "pregunta": "¿Quién evalúa la propuesta de un trabajo dirigido?",
+      "v1": "documentos",
+      "v2": "documentos",
+      "v3": "documentos"
+    },
+    {
+      "id": "h24",
+      "esperada": "documentos",
+      "pregunta": "¿Puedo pedir créditos adicionales si pagué matrícula de solo 9 créditos?",
+      "v1": "documentos",
+      "v2": "documentos",
+      "v3": "documentos"
+    },
+    {
+      "id": "h25",
+      "esperada": "documentos",
+      "pregunta": "¿Qué pasa si dejo de inscribir materias del segundo programa dos semestres seguidos?",
+      "v1": "documentos",
+      "v2": "documentos",
+      "v3": "documentos"
+    },
+    {
+      "id": "h26",
+      "esperada": "documentos",
+      "pregunta": "¿Un trabajo dirigido puede contar para una línea de énfasis?",
+      "v1": "documentos",
+      "v2": "documentos",
+      "v3": "documentos"
+    },
+    {
+      "id": "h27",
+      "esperada": "herramienta",
+      "pregunta": "¿Cuánto me cobran por un duplicado del diploma?",
+      "v1": "fuera_de_alcance",
+      "v2": "documentos",
+      "v3": "herramienta"
+    },
+    {
+      "id": "h28",
+      "esperada": "herramienta",
+      "pregunta": "¿Cuántos créditos tiene Desarrollo y Operaciones Software?",
+      "v1": "fuera_de_alcance",
+      "v2": "fuera_de_alcance",
+      "v3": "herramienta"
+    },
+    {
+      "id": "h29",
+      "esperada": "herramienta",
+      "pregunta": "¿Qué materias tiene el séptimo semestre del plan anterior de Sistemas?",
+      "v1": "fuera_de_alcance",
+      "v2": "fuera_de_alcance",
+      "v3": "herramienta"
+    },
+    {
+      "id": "h30",
+      "esperada": "herramienta",
+      "pregunta": "¿Cuál es el valor de la inscripción para aspirantes en 2027?",
+      "v1": "fuera_de_alcance",
+      "v2": "documentos",
+      "v3": "herramienta"
+    },
+    {
+      "id": "h31",
+      "esperada": "fuera_de_alcance",
+      "pregunta": "¿Cuánto cuesta la matrícula de medicina en el Rosario?",
+      "v1": "fuera_de_alcance",
+      "v2": "fuera_de_alcance",
+      "v3": "fuera_de_alcance"
+    },
+    {
+      "id": "h32",
+      "esperada": "fuera_de_alcance",
+      "pregunta": "¿En qué barrio vive el representante estudiantil?",
+      "v1": "fuera_de_alcance",
+      "v2": "fuera_de_alcance",
+      "v3": "fuera_de_alcance"
     }
   ]
 }

@@ -3,49 +3,82 @@
     "pregunta": "¿Qué porcentaje de créditos necesito para hacer la práctica?",
     "ruta": "documentos",
     "herramienta": "",
-    "respuesta": "Para acceder al programa de prácticas profesionales, necesitas haber cursado y aprobado el setenta y cinco por ciento (75 %) de los créditos académicos de tu plan de estudios [3].",
+    "respuesta": "Para acceder al programa de prácticas profesionales, necesitas haber cursado y aprobado el setenta y cinco por ciento (75 %) de los créditos académicos de tu plan de estudios [4].",
     "fuentes": [
       "[1] Reglamento de Prácticas Profesionales en Pregrado, Artículo 19. Asignaturas adicionales durante la práctica profesional (pág. 13)",
-      "[2] Reglamento de Prácticas Profesionales en Pregrado, Artículo 26. Pago de derechos de matrícula para prácticas profesionales (pág. 18)",
-      "[3] Reglamento de Prácticas Profesionales en Pregrado, Artículo 10. Requisitos para solicitar el acceso al programa de prácticas profesionales (pág. 9)",
-      "[4] Reglamento de Movilidad Estudiantil de Pregrado, Artículo 14. Práctica profesional internacional (pág. 12)"
+      "[2] Lineamientos para Práctica Docente (2023) (pág. 4)",
+      "[3] Reglamento de Prácticas Profesionales en Pregrado, Artículo 26. Pago de derechos de matrícula para prácticas profesionales (pág. 18)",
+      "[4] Reglamento de Prácticas Profesionales en Pregrado, Artículo 10. Requisitos para solicitar el acceso al programa de prácticas profesionales (pág. 9)"
     ],
-    "latencia_s": 14.17
+    "latencia_s": 15.8
   },
   {
     "pregunta": "¿Hasta cuándo puedo cancelar el semestre?",
     "ruta": "herramienta",
     "herramienta": "consultar_calendario",
-    "respuesta": "Puedes cancelar el semestre hasta el 21 de noviembre de 2026, que es la fecha límite para el periodo 2026-2.",
+    "respuesta": "Puedes cancelar el semestre hasta el 20 de noviembre de 2027, que corresponde al periodo 2027-2. Este es el evento más próximo cuyo estado no sea \"ya pasó\".",
     "fuentes": [
       "Calendario Académico 2027"
     ],
-    "latencia_s": 12.34
+    "latencia_s": 13.3
   },
   {
     "pregunta": "Saqué 4.2 en una materia de 3 créditos y 3.6 en una de 4, ¿cuál es mi promedio?",
     "ruta": "herramienta",
     "herramienta": "calcular_promedio_ponderado",
-    "respuesta": "Tu promedio ponderado sería 3.9 (3.857), considerando los créditos de las materias que mencionaste.",
+    "respuesta": "Tu promedio ponderado sería 3.86 (3.857), considerando los créditos de las materias que mencionaste.",
     "fuentes": [
       "Herramienta MCP: calcular_promedio_ponderado"
     ],
-    "latencia_s": 12.67
+    "latencia_s": 13.84
   },
   {
     "pregunta": "¿Cuántas faltas de asistencia se permiten antes de perder una materia?",
     "ruta": "documentos",
     "herramienta": "",
-    "respuesta": "No encontré esa información en los reglamentos que tengo. Te sugiero consultarlo con la decanatura de tu programa.",
+    "respuesta": "No encontré esa información en los reglamentos que tengo.",
     "fuentes": [],
-    "latencia_s": 4.77
+    "latencia_s": 8.79
   },
   {
     "pregunta": "¿Me recomiendas una película?",
     "ruta": "fuera_de_alcance",
     "herramienta": "",
-    "respuesta": "Solo puedo ayudarte con temas académicos de la Escuela: reglamentos de prácticas, opción de grado, trabajos dirigidos, movilidad, inglés, el calendario académico 2027 y cálculo de promedios. Para otros temas te recomiendo consultar otra fuente.",
+    "respuesta": "Solo puedo ayudarte con temas académicos de la Escuela: reglamentos de prácticas, opción de grado, trabajos dirigidos, movilidad, inglés, doble programa, créditos adicionales, cancelación de asignaturas, líneas de énfasis, el calendario académico 2027, los valores de matrícula y derechos pecuniarios 2027, el plan de estudios de Ingeniería de Sistemas y cálculo de promedios. Para otros temas te recomiendo consultar otra fuente.",
     "fuentes": [],
-    "latencia_s": 3.36
+    "latencia_s": 2.98
+  },
+  {
+    "pregunta": "¿Cuánto cuesta la matrícula de ingeniería en 2027?",
+    "ruta": "herramienta",
+    "herramienta": "consultar_valores_2027",
+    "respuesta": "La matrícula para el año 2027 en los programas de Ingeniería (sin incluir Ingeniería Biomédica) variará según el rango socioeconómico del estudiante, con valores mínimos de $7.961.000 y máximos de $16.782.500.",
+    "fuentes": [
+      "Resolución de Rectoría N.° 014 de 2026 (18 de agosto de 2026), Derechos de Matrícula 2027 para los Programas de Pregrado (herramienta MCP consultar_valores_2027)"
+    ],
+    "latencia_s": 16.49
+  },
+  {
+    "pregunta": "¿En qué semestre se ve Arquitecturas de Software?",
+    "ruta": "herramienta",
+    "herramienta": "consultar_plan_estudios",
+    "respuesta": "En el plan de estudios desde 2025-1, Arquitecturas de Software se imparte en el semestre 6. Para estudiantes que ingresaron antes de ese periodo, esta asignatura se encuentra en el semestre 8.",
+    "fuentes": [
+      "Planes de estudio oficiales de Ingeniería de Sistemas (mallas en PDF de la Escuela) (herramienta MCP consultar_plan_estudios)"
+    ],
+    "latencia_s": 13.96
+  },
+  {
+    "pregunta": "¿Qué requisitos hay para hacer doble programa?",
+    "ruta": "documentos",
+    "herramienta": "",
+    "respuesta": "Para hacer doble programa, el estudiante debe:\n\n- Tener tres matrículas completas en semestres lectivos regulares [1].\n- Acreditar un promedio acumulado de 3,50 o superior [1].\n- No encontrarse en situación de alto riesgo académico [1].\n- No tener amonestaciones ni sanciones disciplinarias vigentes [1, 3].\n- Presentar las pruebas Saber Pro correspondientes a cada programa [2].\n\nEstos requisitos deben ser cumplidos antes de formalizar la intención de cursar el doble programa.",
+    "fuentes": [
+      "[1] Condiciones de la Intención de Doble Programa (Consejo Académico, Acta 382 de 2026) (pág. 2)",
+      "[2] Condiciones de la Intención de Doble Programa (Consejo Académico, Acta 382 de 2026) (pág. 3)",
+      "[3] Condiciones de la Intención de Doble Programa (Consejo Académico, Acta 382 de 2026) (pág. 2)",
+      "[4] Condiciones de la Intención de Doble Programa (Consejo Académico, Acta 382 de 2026) (pág. 2)"
+    ],
+    "latencia_s": 19.88
   }
 ]

@@ -1,0 +1,20 @@
+{
+  "corrida": "7_ampliacion_original",
+  "config": {
+    "chunking": "articulo",
+    "prompt": "v3",
+    "router": "v3",
+    "juez": "mismo LLM",
+    "set": "original"
+  },
+  "n": 40,
+  "hit@k_retriever": 1.0,
+  "hit@k_con_umbral": 1.0,
+  "hit@k_articulo_exacto": 1.0,
+  "ruteo_correcto": 1.0,
+  "herramienta_correcta": 1.0,
+  "rechazo_correcto": 1.0,
+  "acierto_respuesta": 1.0,
+  "fidelidad": 1.0,
+  "latencia_mediana_s": 11.98
+}

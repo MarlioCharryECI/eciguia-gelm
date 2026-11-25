@@ -1,6 +1,6 @@
 # EciGuía
 
-Asistente académico para estudiantes de pregrado de la Escuela Colombiana de Ingeniería Julio Garavito. Responde dudas sobre prácticas profesionales, opción de grado, trabajos dirigidos, movilidad, inglés y el calendario académico 2027, citando el documento y la página de donde sale cada dato. Si algo no está en los documentos, lo dice. Todo corre en local con Ollama, gratis y sin enviar datos a terceros.
+Asistente académico para estudiantes de pregrado de la Escuela Colombiana de Ingeniería Julio Garavito. Responde dudas sobre prácticas profesionales y práctica docente, opción de grado, trabajos dirigidos, movilidad, inglés, doble programa, créditos adicionales, cancelación de asignaturas, líneas de énfasis y representación estudiantil (13 documentos oficiales), además del calendario académico 2027, los valores de matrícula y derechos pecuniarios 2027 y el plan de estudios de Ingeniería de Sistemas. Cita el documento y la página de donde sale cada dato. Si algo no está en los documentos, lo dice. Todo corre en local con Ollama, gratis y sin enviar datos a terceros.
 
 Proyecto final de GELM (IA Generativa), 2026-2. El informe completo está en [`proyecto.ipynb`](proyecto.ipynb).
 
@@ -13,6 +13,8 @@ pregunta ─▶ router (LLM) ─┬─▶ documentos ─▶ Chroma (top 4, umbra
                           │                  · consultar_calendario
                           │                  · dias_hasta
                           │                  · calcular_promedio_ponderado
+                          │                  · consultar_valores_2027   (matrícula y derechos pecuniarios)
+                          │                  · consultar_plan_estudios  (Ingeniería de Sistemas)
                           └─▶ fuera de alcance ─▶ rechazo amable
 ```
 
@@ -28,6 +30,21 @@ pregunta ─▶ router (LLM) ─┬─▶ documentos ─▶ Chroma (top 4, umbra
 
 ## Resultados
 
+### Segunda etapa: corpus ampliado (configuración actual de la app)
+
+El corpus pasó de 6 a 13 documentos y se agregaron dos herramientas. Se evaluó con el set original como prueba de regresión y con un set nuevo de 26 preguntas:
+
+| Set | Recuperación | Ruteo | Herramienta | Rechazo | Revisión humana |
+| --- | --- | --- | --- | --- | --- |
+| Original, 40 preguntas (`8_final_original`) | 100 % | 100 % | 100 % | 100 % | 33/33 correctas, **0 regresiones** frente a `6_final` |
+| Ampliación, 26 preguntas (`8_final_nuevas`) | 100 % | 100 % | 100 % | 100 % | 22/22 correctas, 4/4 trampas rechazadas |
+
+- **Router en un set aparte** de 32 preguntas que no se usaron para escribir los prompts: V1 81 %, V2 84 %, **V3 97 %**.
+- **El umbral de relevancia se mantuvo en 0,45** al recalibrar con el corpus ampliado (39 positivas y 31 negativas).
+- Los fallos de la primera corrida de la ampliación (argumentos faltantes, citas inventadas, la trampa de Ingeniería Civil) se corrigieron en el código, con pruebas unitarias. Detalle en la sección 4.7 del notebook.
+
+### Primera etapa: 6 corridas sobre el corpus inicial
+
 Evaluación con 40 preguntas de respuesta conocida, en 6 corridas que cambian una cosa a la vez (detalle y discusión en la sección 4 del notebook):
 
 | Corrida | Qué cambia | Recuperación | Ruteo | Rechazo | Acierto reglamentos | Acierto fechas/cálculos | Latencia |
@@ -41,7 +58,7 @@ Evaluación con 40 preguntas de respuesta conocida, en 6 corridas que cambian un
 
 - **Revisión humana de la corrida final:** 32 de 33 respuestas correctas y 7 de 7 rechazos correctos. El juez LLM coincidió con la revisión manual en 8 de 10 casos y fue más permisivo cuando falló.
 - **Umbral de relevancia calibrado** (`eval/calibrate.py`): con 0,45 pasan todas las preguntas con respuesta y se bloquea el 81 % de las que no la tienen; con el valor inicial de 0,65 solo se bloqueaba el 7 %. Ver `docs/resultados/calibracion.png`.
-- **Fallos analizados:** sesgo del router con las preguntas de matrícula, abstenciones por una regla demasiado estricta y polaridad de sí/no y aritmética de fechas del modelo de 7B. Hay una regresión conocida del router V2: "¿Quiénes forman el jurado…?" se rechaza.
+- **Fallos analizados:** sesgo del router con las preguntas de matrícula, abstenciones por una regla demasiado estricta y polaridad de sí/no y aritmética de fechas del modelo de 7B. La regresión del router V2 ("¿Quiénes forman el jurado…?") se corrigió en V3.
 
 Todos los resúmenes, la tabla comparativa y la validación del juez están en [`docs/resultados/`](docs/resultados/).
 
@@ -73,7 +90,9 @@ El servidor MCP también se puede usar solo, con cualquier cliente MCP: `uv run 
 
 ## Evaluación
 
-`eval/golden_set.jsonl` tiene 40 preguntas con respuesta conocida: 25 de reglamentos (con documento y artículo esperados), 8 de herramientas y 7 fuera de alcance o trampa.
+Hay dos sets de preguntas con respuesta conocida:
+- `eval/golden_set.jsonl` (40): 25 de reglamentos (con documento y artículo esperados), 8 de herramientas y 7 fuera de alcance o trampa.
+- `eval/golden_set_ampliacion.jsonl` (26): preguntas sobre los documentos y herramientas de la segunda etapa.
 
 ```powershell
 uv run python -m eciguia.ingest --strategy fijo     # índice alterno para comparar chunking
@@ -84,7 +103,11 @@ uv run python eval/run_eval.py --name 3_router_tools --prompt basico
 uv run python eval/run_eval.py --name 4_prompt_v1 --prompt v1
 uv run python eval/run_eval.py --name 5_prompt_v2 --prompt v2
 uv run python eval/run_eval.py --name 6_final --router v2 --prompt v3
-uv run python eval/compare_router.py                # router V1 frente a V2 en 20 preguntas nuevas
+# segunda etapa (configuración actual): regresión sobre el set original y set de ampliación
+uv run python eval/run_eval.py --name 8_final_original --golden original
+uv run python eval/run_eval.py --name 8_final_nuevas --golden ampliacion
+uv run python eval/regresion.py 6_final 8_final_original   # qué empeoró y qué mejoró, pregunta por pregunta
+uv run python eval/compare_router.py                # versiones del router en 32 preguntas que no se usaron para escribirlas
 ```
 
 Cada experimento cambia una sola cosa respecto al anterior. Métricas: hit@4 del retriever, ruteo correcto, herramienta correcta, rechazo correcto, acierto y fidelidad (LLM como juez, validado a mano) y latencia mediana. El detalle queda en `eval/results/` y los resúmenes finales en `docs/resultados/`.
@@ -97,11 +120,22 @@ uv run pytest      # no necesitan Ollama (usan embeddings y LLM simulados)
 
 ## Documentos usados
 
-En `data/raw/`, descargados de [escuelaing.edu.co](https://www.escuelaing.edu.co/es/estudiantes/reglamentos-y-cronogramas-academicos/): Reglamento de Prácticas Profesionales (julio de 2026), Lineamientos de Opción de Grado, Reglamento de Trabajos Dirigidos (mayo de 2026), Reglamento de Movilidad Estudiantil (mayo de 2026), Reglamento de Inglés 2025 y Modificación al Reglamento Estudiantil (2025). El calendario académico 2027 venía como imagen, así que se transcribió a `data/calendario_2027.json`.
+Todos son documentos oficiales de [escuelaing.edu.co](https://www.escuelaing.edu.co/es/estudiantes/reglamentos-y-cronogramas-academicos/).
+
+| Carpeta | Contenido | Cómo se usa |
+| --- | --- | --- |
+| `data/raw/` | Reglamentos de Prácticas Profesionales (2026), Trabajos Dirigidos (2026), Movilidad (2026), Inglés (2025), Líneas de Énfasis; Lineamientos de Opción de Grado y de Práctica Docente (2023); Modificación al Reglamento Estudiantil (2025); Condiciones del Doble Programa (Acta 382 de 2026); y 3 PDF escaneados | RAG |
+| `data/transcripciones/` | Transcripción de los escaneados: créditos adicionales, cancelación de asignaturas y régimen de participación estudiantil (Acuerdos 70 y 71 de 2017) | RAG (reemplaza al PDF) |
+| `data/calendario_2027.json` | Calendario académico 2027 (transcrito de una imagen) | Herramienta MCP |
+| `data/valores_2027.json` | Matrícula 2027 (Res. 014 de 2026) y derechos pecuniarios 2027 (Res. 016 de 2026); los PDF están en `data/fuentes_tabulares/` | Herramienta MCP |
+| `data/plan_estudios_sistemas.json` | Planes de estudio de Ingeniería de Sistemas (antes y desde 2025-1); los PDF están en `data/fuentes_tabulares/` | Herramienta MCP |
+
+Las transcripciones y los JSON se hicieron a mano y se verificaron contra los PDF originales.
 
 ## Limitaciones conocidas
 
-- No incluye el Reglamento Estudiantil de Pregrado completo, solo su modificación de 2025. Por eso no responde preguntas de asistencia, notas mínimas o pérdida de cupo; las reconoce como fuera de sus documentos.
+- No incluye el Reglamento Estudiantil de Pregrado completo, solo su modificación de 2025. La versión de 2018 se descartó a propósito porque trae artículos que esa modificación derogó. Por eso no responde preguntas de asistencia, notas mínimas o pérdida de cupo; las reconoce como fuera de sus documentos.
+- El plan de estudios cubre solo Ingeniería de Sistemas y no incluye prerrequisitos.
 - Los Lineamientos de Opción de Grado piden el 80 % de los créditos y el Reglamento de Prácticas (2026) pide el 75 %. El asistente debe mostrar ambos.
 - El calendario se transcribió a mano: ante cualquier duda, manda el calendario oficial.
 - El juez de la evaluación es el mismo modelo que responde, lo que puede inflar las métricas. Por eso se validó a mano una muestra de sus veredictos.
