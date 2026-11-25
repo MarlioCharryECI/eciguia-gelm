@@ -1,5 +1,20 @@
 # Plan de producción del video (fase 10)
 
+> **Actualización del 25/11/2026 (rúbrica 2026-2).** La rúbrica nueva pide un video **público de máximo 5 minutos** que muestre el flujo completo: entrada, procesamiento con GenAI, salida y casos representativos. Esto reemplaza el plan de 9 minutos de abajo, que queda como referencia.
+>
+> **Lo que se hizo:**
+> - **Estilo:** demo técnica con ritmo.
+> - **Voz:** Gonzalo (es-CO, edge-tts), declarada como sintética en pantalla y en la descripción.
+> - **Edición:** la hizo Claude, sin otro agente.
+> - **Resultado:** corte de **3:07**, en `final/eciguia_video.mp4`.
+>
+> **Flujo reproducible** (todo con `uv run`, sin instalar nada en el sistema):
+> 1. `tools/grabar_app.py`: 7 clips de la demo con marcas de tiempo (requiere la app y Ollama).
+> 2. `narracion.json` → `tools/narrar.py`: un audio por escena y sus duraciones.
+> 3. `tools/render_slides.py`: diapositivas por etapas (las cifras se leen de `docs/resultados/`) y rótulos ENTRADA / PROCESAMIENTO / SALIDA.
+> 4. `tools/montar.py`: recorta, acelera las esperas (con rótulo), sincroniza con la voz, normaliza el audio y falla si el video pasa de 5:00.
+> 5. `descripcion_youtube.md`: título, descripción con la nota de voz sintética y capítulos.
+
 Video de entrega de EciGuía. Este documento lo siguen tres actores:
 - **Claude (esta sesión)** graba el material crudo (RAW), genera las diapositivas, prepara la narración y la lista de decisiones de edición (EDL).
 - **Un agente editor** (otra sesión) monta el video final a partir del RAW y la EDL, sin tener que entender el proyecto.

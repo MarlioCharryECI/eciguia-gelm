@@ -1,4 +1,8 @@
-# Guion del video: EciGuía (v2, unos 9 minutos)
+# Guion del video: EciGuía
+
+> **v3 vigente (25/11/2026):** la rúbrica 2026-2 limita el video a 5 minutos. La narración que se usó está en `docs/video/narracion.json` (corte final de 3:07). El guion v2 de abajo, de 9 minutos, queda solo como referencia.
+
+## v2 (obsoleto, unos 9 minutos)
 
 Este guion lo usan tres actores: el **usuario** narra (o aprueba la voz sintética), **Claude** graba el material crudo y genera las diapositivas, y el **agente editor** monta el video. Cada escena tiene un ID (E01 a E08) que coincide con los archivos de `docs/video/` y con `edl.json`. El proceso completo está en `docs/video/PLAN_VIDEO.md`.
 

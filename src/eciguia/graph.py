@@ -23,13 +23,15 @@ from langgraph.graph import END, START, StateGraph
 
 from eciguia import config, prompts
 from eciguia.retriever import Hit, Retriever, format_context
+from eciguia.validation import Validacion, validar_pregunta
 
-Route = Literal["documentos", "herramienta", "fuera_de_alcance"]
+Route = Literal["documentos", "herramienta", "fuera_de_alcance", "entrada_invalida"]
 SRC_DIR = Path(__file__).resolve().parents[1]
 PERIOD_HINT = re.compile(r"20\d\d|intersemestral", re.IGNORECASE)
 PLAN_HINT = re.compile(r"2025|antes|anterior|antiguo|viejo|nuevo|actual", re.IGNORECASE)
 TOOLS_WITH_QUERY = {"consultar_calendario", "consultar_valores_2027", "consultar_plan_estudios"}
 TOOLS_WITH_FULL_QUESTION = {"consultar_valores_2027", "consultar_plan_estudios"}
+ANSWER_NODES = {"responder_documentos", "responder_herramienta"}  # nodos cuyo texto se muestra en vivo
 CITATION_RE = re.compile(r"\[(\d+(?:\s*[,y]\s*\d+)*)\]")
 
 
@@ -64,6 +66,7 @@ class AgentState(TypedDict, total=False):
     answer: str
     sources: list[str]
     error: str
+    validation: str  # tipo de entrada inválida, si la pregunta no pasó validar_pregunta
 
 
 def _today() -> str:
@@ -236,11 +239,42 @@ class EciGuiaAgent:
             g.add_edge(node, END)
         return g.compile()
 
+    @staticmethod
+    def _invalid(question: str, check: Validacion) -> AgentState:
+        return {"question": question, "route": "entrada_invalida", "validation": check.tipo,
+                "answer": check.mensaje, "sources": [], "latency_s": 0.0}
+
     async def ask(self, question: str) -> AgentState:
+        check = validar_pregunta(question)
+        if not check.ok:
+            return self._invalid(question, check)
         start = time.perf_counter()
-        state = await self.graph.ainvoke({"question": question})
+        state = await self.graph.ainvoke({"question": question.strip()})
         state["latency_s"] = round(time.perf_counter() - start, 2)
         return state
+
+    async def astream(self, question: str):
+        """Igual que ask(), pero va emitiendo lo que pasa, para mostrar el proceso en vivo:
+        {"tipo": "paso", "nodo": ..., "estado": ...} cuando termina cada nodo del grafo,
+        {"tipo": "token", "texto": ...} mientras el modelo redacta la respuesta final, y
+        {"tipo": "final", "estado": ...} al terminar."""
+        check = validar_pregunta(question)
+        if not check.ok:
+            yield {"tipo": "final", "estado": self._invalid(question, check)}
+            return
+        start = time.perf_counter()
+        state: AgentState = {"question": question.strip()}
+        async for mode, chunk in self.graph.astream(dict(state), stream_mode=["updates", "messages"]):
+            if mode == "messages":
+                message, meta = chunk
+                if meta.get("langgraph_node") in ANSWER_NODES and getattr(message, "content", ""):
+                    yield {"tipo": "token", "texto": message.content}
+                continue
+            for node, update in chunk.items():
+                state.update(update or {})
+                yield {"tipo": "paso", "nodo": node, "estado": state}
+        state["latency_s"] = round(time.perf_counter() - start, 2)
+        yield {"tipo": "final", "estado": state}
 
 
 def main() -> None:

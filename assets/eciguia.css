@@ -1,0 +1,227 @@
+/* EciGuía · dirección "plano técnico de normas"
+   Un solo acento (rojo Escuela), retícula de plano tenue, sans técnica para la interfaz y serif solo para
+   el texto citado de la norma. Lo memorable es el proceso en vivo; todo lo demás es sobrio. */
+
+:root {
+  --eg-red: #a6192e;
+  --eg-red-soft: #f6e3e6;
+  --eg-ink: #23262b;
+  --eg-ink-2: #5b6472;
+  --eg-paper: #f5f7fa;
+  --eg-surface: #ffffff;
+  --eg-line: #d9dee5;
+  --eg-grid: rgba(35, 38, 43, 0.045);
+  --eg-ok: #1f7a55;
+  --eg-warn: #9a5b00;
+  --eg-warn-soft: #fbf1df;
+  --eg-serif: "Source Serif 4", "Source Serif Pro", Georgia, serif;
+  --eg-radius: 14px;
+}
+.dark {
+  --eg-red: #e0566a;
+  --eg-red-soft: #3a1c22;
+  --eg-ink: #e7eaf0;
+  --eg-ink-2: #a3adbd;
+  --eg-paper: #12151a;
+  --eg-surface: #1a1e25;
+  --eg-line: #2c323c;
+  --eg-grid: rgba(231, 234, 240, 0.035);
+  --eg-ok: #4fbf8b;
+  --eg-warn: #e5a54a;
+  --eg-warn-soft: #2e2617;
+}
+
+/* Fondo: retícula de puntos con un degradado muy suave hacia el rojo en una esquina.
+   Los puntos se desvanecen hacia el centro (máscara), así nunca quedan detrás del texto del chat. */
+:root { --eg-dot: rgba(35, 38, 43, 0.16); --eg-wash: rgba(166, 25, 46, 0.07); }
+.dark { --eg-dot: rgba(231, 234, 240, 0.09); --eg-wash: rgba(224, 86, 106, 0.08); }
+body {
+  background-color: var(--eg-paper) !important;
+  background-image:
+    radial-gradient(900px 520px at 100% 0%, var(--eg-wash), transparent 70%),
+    radial-gradient(700px 420px at 0% 100%, var(--eg-wash), transparent 70%) !important;
+  background-attachment: fixed !important;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(var(--eg-dot) 1.1px, transparent 1.4px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 75% at 50% 50%, transparent 30%, #000 80%);
+  mask-image: radial-gradient(ellipse 70% 75% at 50% 50%, transparent 30%, #000 80%);
+}
+.gradio-container { position: relative; z-index: 1; background: transparent !important; max-width: 1060px !important; margin: 0 auto !important; }
+footer { display: none !important; }
+
+/* Íconos de Lucide */
+.eg-icon { width: 1.05em; height: 1.05em; flex: none; vertical-align: -0.16em; stroke-width: 1.9; }
+
+/* Encabezado */
+.eg-header { display: flex; align-items: center; gap: 14px; padding: 8px 4px 4px; }
+.eg-brand { flex: 1; min-width: 0; }
+.eg-name { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.02em; color: var(--eg-ink); line-height: 1.1; }
+.eg-tagline { color: var(--eg-ink-2); font-size: 0.92rem; }
+.eg-theme { border: 1px solid var(--eg-line); background: var(--eg-surface); color: var(--eg-ink);
+  width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; cursor: pointer;
+  padding: 0 !important; line-height: 0; min-width: 0 !important; } /* Gradio pone padding 8px 16px a todos los botones */
+.eg-theme svg { margin: 0 !important; }
+.eg-theme:hover { border-color: var(--eg-red); }
+/* reglas separadas a propósito: Gradio reescribe las listas de selectores que mezclan .dark */
+.eg-theme svg.eg-sun { display: none !important; }
+.dark .eg-theme svg.eg-sun { display: inline-block !important; }
+.dark .eg-theme svg.eg-moon { display: none !important; }
+
+/* Logotipo: astroide como rosa de los vientos */
+.eg-logo { flex: none; }
+/* Logotipo del autor. Claro: marco y aguja sur grafito, norte roja, anillo blanco.
+   Oscuro: marco y aguja sur claros; el anillo toma el color del fondo para seguir separando el centro. */
+:root { --eg-logo-ink: #111827; --eg-logo-north: #e53935; --eg-logo-gap: #ffffff; }
+.dark { --eg-logo-ink: #e7eaf0; --eg-logo-gap: #12151a; }
+.eg-logo-frame { fill: none; stroke: var(--eg-logo-ink); stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+.eg-logo-north { fill: var(--eg-logo-north); }
+.eg-logo-south { fill: var(--eg-logo-ink); }
+.eg-logo-gap { fill: var(--eg-logo-gap); }
+.eg-logo-dot { fill: var(--eg-logo-ink); }
+/* el único momento de carga: el marco se traza una vez */
+.eg-empty .eg-logo-frame { stroke-dasharray: 760; stroke-dashoffset: 760; animation: eg-trace 1.4s ease-out 0.1s forwards; }
+@keyframes eg-trace { to { stroke-dashoffset: 0; } }
+
+/* Chat: burbujas. La del asistente desaparece (el contenido ya trae su propia estructura). */
+.eg-chat { border: 1px solid var(--eg-line) !important; border-radius: 18px !important; background: var(--eg-surface) !important; }
+.eg-chat .message.bot { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+.eg-chat .message.user { background: var(--eg-red-soft) !important; border: none !important; border-radius: 14px 14px 4px 14px !important; padding: 10px 14px !important; }
+.eg-chat [data-testid="user"] { background: transparent !important; border: none !important; color: var(--eg-ink) !important; padding: 0 !important; }
+/* Gradio pone display:block a los SVG del chat; los íconos van en línea con el texto */
+.eg-msg svg.eg-icon, .eg-empty svg.eg-icon, .eg-side svg.eg-icon, .eg-header svg.eg-icon { display: inline-block; }
+.eg-empty svg.eg-logo { display: block; margin: 0 auto; }
+
+/* Paneles de Gradio con la paleta propia */
+.sidebar { background: var(--eg-surface) !important; border-right: 1px solid var(--eg-line) !important; }
+.eg-input, .eg-input textarea { background: var(--eg-surface) !important; color: var(--eg-ink) !important; }
+
+/* Estado vacío por categorías */
+/* Compacto a propósito: debe caber completo en el área del chat de un portátil (unos 480 px de alto)
+   sin barra de desplazamiento propia. Las 4 categorías van en una fila; en pantallas angostas se apilan. */
+.eg-empty { text-align: center; padding: 6px 4px; color: var(--eg-ink); position: relative; isolation: isolate; }
+/* Manchas de puntos del estado vacío (imágenes en ui.decor_css): una arriba a la derecha y otra abajo a la
+   izquierda, con borde desvanecido. Desaparecen solas cuando empieza la conversación. */
+.eg-empty::before, .eg-empty::after { content: ""; position: absolute; z-index: -1; pointer-events: none; background-repeat: no-repeat; background-size: contain; }
+.eg-empty::before { top: -24px; right: -8px; width: 368px; height: 224px;
+  -webkit-mask-image: linear-gradient(to bottom left, #000 35%, transparent 85%); mask-image: linear-gradient(to bottom left, #000 35%, transparent 85%); }
+/* la mancha izquierda se desvanece antes de llegar al texto central, para no restarle contraste */
+.eg-empty::after { left: -8px; top: 36px; width: 210px; height: 124px;
+  -webkit-mask-image: linear-gradient(to right, #000 35%, transparent 92%); mask-image: linear-gradient(to right, #000 35%, transparent 92%); }
+@media (max-width: 640px) { .eg-empty::before, .eg-empty::after { opacity: 0.6; } }
+.eg-empty h2 { font-size: 1.45rem; letter-spacing: -0.02em; margin: 8px 0 4px; }
+.eg-empty > p { color: var(--eg-ink-2); max-width: 62ch; margin: 0 auto 14px; font-size: 0.95rem; }
+.eg-cats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; text-align: left; }
+.eg-cat { border: 1px solid var(--eg-line); border-radius: var(--eg-radius); padding: 12px; background: var(--eg-paper); }
+.eg-cat-h { display: flex; align-items: center; gap: 8px; font-weight: 650; color: var(--eg-ink); margin-bottom: 8px; }
+.eg-cat-h .eg-icon { color: var(--eg-red); }
+
+/* Botones de pregunta sugerida */
+.eg-ask { display: block; width: 100%; text-align: left; border: 1px solid var(--eg-line); background: var(--eg-surface);
+  color: var(--eg-ink); border-radius: 10px; padding: 8px 11px; margin-top: 6px; font: inherit; font-size: 0.92rem; cursor: pointer; }
+.eg-ask:hover { border-color: var(--eg-red); color: var(--eg-red); }
+.eg-ask:focus-visible, .eg-cite:focus-visible, .eg-theme:focus-visible, summary:focus-visible { outline: 2px solid var(--eg-red); outline-offset: 2px; }
+
+/* Mensaje del asistente */
+.eg-msg { display: flex; flex-direction: column; gap: 12px; color: var(--eg-ink); width: 100%; }
+
+/* Proceso en vivo */
+.eg-steps { list-style: none; margin: 0; padding: 10px 12px; background: var(--eg-paper); border-radius: 10px; display: flex; flex-direction: column; gap: 6px; }
+.eg-step { display: flex; align-items: center; gap: 9px; font-size: 0.92rem; color: var(--eg-ink-2); }
+.eg-step.is-hecho .eg-icon { color: var(--eg-ok); }
+.eg-step.is-activo { color: var(--eg-ink); font-weight: 600; }
+.eg-step.is-activo .eg-icon { color: var(--eg-red); }
+.eg-step.is-pendiente { opacity: 0.55; }
+.eg-dot { width: 1.05em; height: 1.05em; display: inline-grid; place-items: center; }
+.eg-dot::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.eg-spin { animation: eg-spin 0.9s linear infinite; }
+@keyframes eg-spin { to { transform: rotate(360deg); } }
+/* al terminar, el proceso queda como una línea discreta */
+.eg-msg[data-uid] .eg-steps { flex-direction: row; flex-wrap: wrap; gap: 4px 14px; padding: 6px 10px; font-size: 0.85rem; }
+.eg-msg[data-uid] .eg-step { font-size: 0.82rem; }
+
+/* Respuesta */
+.eg-answer { font-size: 1.02rem; line-height: 1.6; max-width: 72ch; }
+.eg-answer p { margin: 0 0 0.6em; }
+.eg-answer ul, .eg-answer ol { margin: 0 0 0.6em 1.2em; padding: 0; }
+.eg-caret { display: inline-block; width: 8px; height: 1.1em; background: var(--eg-red); vertical-align: -0.2em; margin-left: 2px; animation: eg-blink 1s steps(2) infinite; }
+@keyframes eg-blink { 50% { opacity: 0; } }
+
+/* Citas interactivas */
+.eg-cite { display: inline-grid; place-items: center; min-width: 1.45em; height: 1.45em; padding: 0 0.35em; margin: 0 1px;
+  border-radius: 7px; border: 1px solid var(--eg-red); background: var(--eg-red-soft); color: var(--eg-red);
+  font: 600 0.75em/1 inherit; vertical-align: 0.15em; cursor: pointer; }
+.eg-cite:hover { background: var(--eg-red); color: #fff; }
+
+/* Tarjetas de fuente */
+.eg-sources { display: flex; flex-direction: column; gap: 6px; }
+.eg-sources-h { display: flex; align-items: center; gap: 7px; font-size: 0.85rem; font-weight: 650; color: var(--eg-ink-2); }
+.eg-src { border: 1px solid var(--eg-line); border-radius: 12px; background: var(--eg-surface); transition: border-color 0.2s, box-shadow 0.2s; }
+.eg-src summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; font-size: 0.9rem; }
+.eg-src summary::-webkit-details-marker { display: none; }
+.eg-src-n { flex: none; min-width: 1.6em; height: 1.6em; border-radius: 7px; display: grid; place-items: center;
+  background: var(--eg-red-soft); color: var(--eg-red); font-weight: 700; font-size: 0.8rem; }
+.eg-src-title { flex: 1; min-width: 0; }
+.eg-src-page { color: var(--eg-ink-2); font-size: 0.82rem; white-space: nowrap; }
+.eg-chev { color: var(--eg-ink-2); transition: transform 0.2s; }
+details[open] > summary .eg-chev { transform: rotate(180deg); }
+.eg-quote { margin: 0 12px 12px; padding: 12px 16px; border: 1px solid var(--eg-line); background: var(--eg-paper);
+  font-family: var(--eg-serif); font-size: 0.98rem; line-height: 1.65; color: var(--eg-ink); border-radius: 8px; }
+.eg-src-tool { display: flex; align-items: center; gap: 10px; padding: 9px 12px; font-size: 0.9rem; }
+.eg-src-tool .eg-icon { color: var(--eg-red); }
+.eg-src.is-flash { border-color: var(--eg-red); box-shadow: 0 0 0 3px var(--eg-red-soft); }
+
+/* ¿Cómo lo supe? */
+.eg-how { border-top: 1px dashed var(--eg-line); padding-top: 6px; font-size: 0.88rem; color: var(--eg-ink-2); }
+.eg-how summary { list-style: none; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.eg-how summary::-webkit-details-marker { display: none; }
+.eg-how dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 10px 0 2px; }
+.eg-how dt { color: var(--eg-ink-2); }
+.eg-how dd { margin: 0; color: var(--eg-ink); overflow-wrap: anywhere; }
+.eg-args { font-size: 0.8rem; }
+.eg-muted { color: var(--eg-ink-2); }
+
+/* Tarjetas de "no sé", fuera de alcance, entrada inválida y error */
+.eg-card { display: flex; gap: 12px; padding: 14px 16px; border-radius: var(--eg-radius); border: 1px solid var(--eg-line); background: var(--eg-surface); }
+.eg-card-icon { width: 1.5em; height: 1.5em; margin-top: 2px; color: var(--eg-ink-2); }
+.eg-card-title { font-weight: 700; margin-bottom: 4px; }
+.eg-card p { margin: 0 0 8px; color: var(--eg-ink-2); line-height: 1.5; }
+.eg-card-warn, .eg-card-error { background: var(--eg-warn-soft); border-color: transparent; }
+.eg-card-warn .eg-card-icon, .eg-card-error .eg-card-icon { color: var(--eg-warn); }
+.eg-suggest > span { display: block; font-size: 0.85rem; color: var(--eg-ink-2); margin-top: 4px; }
+
+/* Panel "Qué sé" */
+.eg-side { color: var(--eg-ink); font-size: 0.9rem; }
+.eg-side h3 { display: flex; align-items: center; gap: 8px; font-size: 1.15rem; margin: 0 0 4px; }
+.eg-side h3 .eg-icon { color: var(--eg-red); }
+.eg-side h4 { font-size: 0.82rem; color: var(--eg-ink-2); margin: 16px 0 6px; font-weight: 650; }
+.eg-side ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.eg-docs li { padding-left: 12px; border-left: 2px solid var(--eg-line); line-height: 1.35; }
+.eg-data li { display: flex; gap: 8px; align-items: flex-start; }
+.eg-data li .eg-icon { color: var(--eg-red); margin-top: 3px; }
+.eg-data li span { display: block; color: var(--eg-ink-2); font-size: 0.82rem; }
+.eg-nope li { color: var(--eg-ink-2); padding-left: 12px; border-left: 2px dashed var(--eg-line); }
+.eg-note { display: flex; gap: 8px; color: var(--eg-ink-2); font-size: 0.82rem; margin-top: 14px; line-height: 1.4; }
+
+/* Entrada: el botón de enviar se deshabilita mientras la caja esté vacía (ver eciguia.js) */
+.eg-input textarea { font-size: 1rem !important; }
+.eg-input button.submit-button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Celular */
+@media (max-width: 900px) {
+  .eg-cats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .eg-tagline { display: none; }
+  .eg-cats { grid-template-columns: 1fr; }
+  .eg-how dl { grid-template-columns: 1fr; }
+  .eg-src-page { display: none; }
+}
+
+/* Movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  .eg-spin, .eg-caret, .eg-empty .eg-logo-frame { animation: none !important; stroke-dashoffset: 0 !important; }
+  .eg-chev, .eg-src { transition: none !important; }
+}

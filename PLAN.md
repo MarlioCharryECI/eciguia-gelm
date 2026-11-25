@@ -204,6 +204,16 @@ Las reglas de la primera etapa siguen vigentes. Además: **Claude no hace commit
 - Guion v2 con narración por escena en `docs/guion_video.md`.
 - **Pendiente del usuario:** aprobar el guion y elegir la voz (A: la suya, recomendada; B: sintética local).
 
+**Fase 10, actualización (25/11): la rúbrica 2026-2 cambió el video a "público, máximo 5 minutos, flujo completo".**
+- El usuario delegó las decisiones:
+  - estilo de demo técnica;
+  - voz Gonzalo (edge-tts, es-CO), declarada como sintética;
+  - la narración dice solo "soy Marlio" (para evitar errores de pronunciación del apellido) y el nombre completo va en la portada;
+  - la edición la hace Claude.
+- Grabados y verificados 7 clips de la demo. Durante la grabación se encontró y corrigió un error real: q2 elegía el evento equivocado del calendario; ahora la herramienta marca `es_el_mas_proximo`, con prueba.
+- **Primer corte: `docs/video/final/eciguia_video.mp4`, 3:07.** Pipeline reproducible en `docs/video/tools/`. Descripción y capítulos en `docs/video/descripcion_youtube.md`.
+- **Pendiente del usuario:** ver el corte y pedir cambios; subirlo **público**; poner el enlace en el README; formulario de entrega; etiqueta y release.
+
 **Cosas para avisar al usuario (no corregidas):**
 - RR016: las notas al pie 1 y 2 parecen intercambiadas en el documento original.
 - Cancelación: el Acuerdo 02 de 2017 dice semana 12 (con extemporáneas en las semanas 13 a 16), y el Acuerdo 001 de 2025 lo prorroga hasta el sábado de la semana 15 "del año en curso". Para fechas concretas manda el calendario (2027-1: 8 de mayo).
