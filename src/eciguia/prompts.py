@@ -187,7 +187,7 @@ Usaste la herramienta "{tool}" y obtuviste este resultado:
 {result}
 
 Responde la pregunta del estudiante en máximo 4 frases usando solo ese resultado.
-- Si hay varios eventos y la pregunta no dice el periodo, responde con el más próximo cuyo estado no sea "ya pasó" y menciona su periodo.
+- Si hay varios eventos y la pregunta no dice el periodo, responde con el evento marcado "es_el_mas_proximo": true y menciona su periodo.
 - No calcules días ni compares fechas por tu cuenta: los días que faltan ya vienen calculados en "dias_para_inicio". Menciónalos solo si la pregunta pide cuánto falta, copiando ese número tal cual.
 - Si es un promedio, da el valor con un decimal (así se expresa el promedio oficial) y el valor exacto entre paréntesis.
 - Si son valores en pesos, cópialos tal cual. Si la matrícula depende del rango y el estudiante no lo dijo, da el mínimo y el máximo y explica que depende del rango socioeconómico; para estudiantes antiguos, menciona el incremento del 7,58 %.

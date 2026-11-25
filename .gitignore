@@ -23,6 +23,11 @@ eval/results/
 # PDF retirados del corpus a propósito (duplicados o que generan confusión); se guardan solo en local
 data/descartados/
 
+# Video: material crudo, audio y montaje final pesan cientos de MB (el final se sube a YouTube o Drive)
+docs/video/raw/
+docs/video/audio/
+docs/video/final/
+
 # Notebooks y apps
 .ipynb_checkpoints/
 .gradio/

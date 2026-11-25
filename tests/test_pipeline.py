@@ -88,6 +88,9 @@ def test_calendar_without_period_puts_upcoming_first():
     assert result[0]["fin"] == "21 de noviembre de 2026"
     later = tools_logic.consultar_calendario("cancelación de semestre", hoy="2026-12-01")
     assert later[0]["periodo"] == "2027-1"
+    # solo un evento queda marcado como el más próximo, y es el primero que no ha pasado
+    marcados = [e for e in later if e.get("es_el_mas_proximo")]
+    assert len(marcados) == 1 and marcados[0]["periodo"] == "2027-1"
 
 
 def test_transcriptions_replace_scanned_pdfs(pages):

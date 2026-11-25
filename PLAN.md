@@ -199,6 +199,11 @@ Las reglas de la primera etapa siguen vigentes. Además: **Claude no hace commit
 - Límite de tiempo para las llamadas a Ollama (`ECIGUIA_OLLAMA_TIMEOUT`, 180 s): durante la fase Ollama se trabó dos veces después de cargas pesadas, y sin límite la app quedaba "cargando" para siempre.
 - Pendiente del usuario: commit y push, `gh repo edit`, etiqueta y release.
 
+**Fase 10 (25/11): el usuario pidió que Claude grabe el video crudo y que otro agente lo edite.**
+- Plan de producción en `docs/video/PLAN_VIDEO.md`: roles, escaleta E01–E08, especificación técnica, procedimiento de grabación con marcas de tiempo, reglas de honestidad (no alterar respuestas, rotular las esperas aceleradas), formato de `edl.json` y lista de comprobación del corte.
+- Guion v2 con narración por escena en `docs/guion_video.md`.
+- **Pendiente del usuario:** aprobar el guion y elegir la voz (A: la suya, recomendada; B: sintética local).
+
 **Cosas para avisar al usuario (no corregidas):**
 - RR016: las notas al pie 1 y 2 parecen intercambiadas en el documento original.
 - Cancelación: el Acuerdo 02 de 2017 dice semana 12 (con extemporáneas en las semanas 13 a 16), y el Acuerdo 001 de 2025 lo prorroga hasta el sábado de la semana 15 "del año en curso". Para fechas concretas manda el calendario (2027-1: 8 de mayo).

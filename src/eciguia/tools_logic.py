@@ -65,7 +65,7 @@ def consultar_calendario(consulta: str, periodo: str | None = None, max_resultad
     # Primero los más relevantes; entre ellos, los vigentes o próximos antes que los que ya pasaron
     results.sort(key=lambda item: (-item[0], item[1]["fin"] < today.isoformat(), item[1]["inicio"]))
     best = results[0][0] if results else 0
-    return [
+    eventos = [
         {
             "evento": e["evento"],
             "periodo": e["periodo"],
@@ -76,6 +76,12 @@ def consultar_calendario(consulta: str, periodo: str | None = None, max_resultad
         for score, e in results[:max_resultados]
         if score == best or score >= 2
     ]
+    # El modelo a veces elegía un evento posterior aunque la lista ya viniera ordenada (respondía 2027-2 en vez
+    # de 2027-1). Se marca explícitamente el más próximo que no ha pasado para que no tenga que deducirlo.
+    proximo = next((e for e in eventos if e["estado"] != "ya pasó"), None)
+    if proximo:
+        proximo["es_el_mas_proximo"] = True
+    return eventos
 
 
 def dias_hasta(fecha: str, hoy: str | None = None) -> dict:
