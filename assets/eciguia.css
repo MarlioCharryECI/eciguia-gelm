@@ -87,6 +87,8 @@ footer { display: none !important; }
 
 /* Chat: burbujas. La del asistente desaparece (el contenido ya trae su propia estructura). */
 .eg-chat { border: 1px solid var(--eg-line) !important; border-radius: 18px !important; background: var(--eg-surface) !important; }
+/* el chat solo se desplaza en vertical: nada de su contenido debe generar desplazamiento horizontal */
+.eg-chat .bubble-wrap { overflow-x: hidden !important; }
 .eg-chat .message.bot { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
 .eg-chat .message.user { background: var(--eg-red-soft) !important; border: none !important; border-radius: 14px 14px 4px 14px !important; padding: 10px 14px !important; }
 .eg-chat [data-testid="user"] { background: transparent !important; border: none !important; color: var(--eg-ink) !important; padding: 0 !important; }
@@ -105,10 +107,10 @@ footer { display: none !important; }
 /* Manchas de puntos del estado vacío (imágenes en ui.decor_css): una arriba a la derecha y otra abajo a la
    izquierda, con borde desvanecido. Desaparecen solas cuando empieza la conversación. */
 .eg-empty::before, .eg-empty::after { content: ""; position: absolute; z-index: -1; pointer-events: none; background-repeat: no-repeat; background-size: contain; }
-.eg-empty::before { top: -24px; right: -8px; width: 368px; height: 224px;
+.eg-empty::before { top: -24px; right: 0; width: 368px; height: 224px;
   -webkit-mask-image: linear-gradient(to bottom left, #000 35%, transparent 85%); mask-image: linear-gradient(to bottom left, #000 35%, transparent 85%); }
 /* la mancha izquierda se desvanece antes de llegar al texto central, para no restarle contraste */
-.eg-empty::after { left: -8px; top: 36px; width: 210px; height: 124px;
+.eg-empty::after { left: 0; top: 36px; width: 210px; height: 124px;
   -webkit-mask-image: linear-gradient(to right, #000 35%, transparent 92%); mask-image: linear-gradient(to right, #000 35%, transparent 92%); }
 @media (max-width: 640px) { .eg-empty::before, .eg-empty::after { opacity: 0.6; } }
 .eg-empty h2 { font-size: 1.45rem; letter-spacing: -0.02em; margin: 8px 0 4px; }

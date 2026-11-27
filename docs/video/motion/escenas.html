@@ -1,0 +1,306 @@
+<!doctype html>
+<!-- Gráficos animados del video de EciGuía. Una escena por ?escena=<nombre>&L=<segundos>.
+     Cada elemento animado lleva data-d con el segundo de la NARRACIÓN en que debe aparecer (tiempo dentro del
+     audio de su bloque); L desplaza todo para alinear la escena con el video. render_motion.py congela las
+     animaciones cuadro a cuadro (document.getAnimations) y las pasa a video. -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Source+Serif+4:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #12151a; --surface: #1a1e25; --line: #2c323c; --ink: #e7eaf0; --ink2: #a3adbd;
+    --red: #e53935; --red2: #e0566a; --doc: #5aa9ff; --tool: #f08a4b;
+    --ease: cubic-bezier(.22, 1, .36, 1);
+  }
+  @property --n { syntax: "<integer>"; initial-value: 0; inherits: false; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--ink);
+    font-family: "Archivo", "Segoe UI", system-ui, sans-serif; }
+  .scene { position: absolute; inset: 0; display: none; }
+  .scene.on { display: block; }
+  .dots { position: absolute; inset: -40px; background-image: radial-gradient(rgba(231,234,240,.13) 1.4px, transparent 1.8px);
+    background-size: 28px 28px; animation: drift 60s linear both;
+    -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 25%, #000 85%); }
+  .glow { position: absolute; width: 1100px; height: 1100px; border-radius: 50%; filter: blur(60px); opacity: .5;
+    background: radial-gradient(circle, rgba(229,57,53,.18), transparent 65%); animation: float 60s ease-in-out both; }
+  @keyframes drift { from { transform: translate(0, 0); } to { transform: translate(-150px, -75px); } }
+  @keyframes float { from { transform: translate(780px, -420px); } to { transform: translate(420px, -220px); } }
+
+  /* toda animación con data-d: el retardo lo pone el script; aquí solo el resto */
+  [data-d] { animation-fill-mode: both; animation-timing-function: var(--ease); }
+  .rise { opacity: 0; animation-name: rise; animation-duration: .9s; }
+  .rise-out { opacity: 0; animation-name: rise, out; animation-duration: .9s, .6s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(46px); filter: blur(10px); } to { opacity: 1; transform: none; filter: blur(0); } }
+  @keyframes out { to { opacity: 0; transform: translateY(-30px) scale(.98); filter: blur(8px); } }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+  @keyframes needle { 0% { transform: rotate(-200deg) scale(.4); opacity: 0; } 60% { opacity: 1; } 100% { transform: rotate(0) scale(1); opacity: 1; } }
+  @keyframes letter { from { opacity: 0; transform: translateY(60px) rotate(8deg); } to { opacity: 1; transform: none; } }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* logo (apertura y cierre) */
+  .logo .frame { fill: none; stroke: var(--ink); stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+  .logo .frame.drawn { stroke-dasharray: 760; stroke-dashoffset: 760; animation-name: draw; animation-duration: 1.6s; }
+  .logo .needle-n { fill: var(--red); transform-origin: 128px 128px; animation-name: needle; animation-duration: 1.4s; }
+  .logo .needle-s, .logo .dot { fill: var(--ink); transform-origin: 128px 128px; animation-name: pop; animation-duration: .6s; }
+  .logo .gap { fill: var(--bg); transform-origin: 128px 128px; animation-name: pop; animation-duration: .6s; }
+
+  /* ---------- apertura ---------- */
+  #hook .lines { position: absolute; left: 220px; top: 270px; font-size: 92px; font-weight: 800; letter-spacing: -2px; line-height: 1.12; }
+  #hook .lines span { display: block; }
+  #hook .lines-wrap { animation-name: out; animation-duration: .7s; }
+  #hook .brand { position: absolute; inset: 0; display: grid; place-items: center; }
+  #hook .brand-inner { display: flex; align-items: center; gap: 44px; }
+  #hook .logo { width: 260px; height: 260px; }
+  #hook .word { font-size: 170px; font-weight: 800; letter-spacing: -5px; display: flex; }
+  #hook .word b { display: inline-block; opacity: 0; animation-name: letter; animation-duration: .7s; }
+  #hook .word b.r { color: var(--red2); }
+  #hook .tag { font-size: 38px; color: var(--ink2); margin-top: 6px; }
+
+  /* ---------- problema ---------- */
+  #problema .title { position: absolute; left: 0; right: 0; top: 120px; height: 100px; text-align: center; font-size: 72px; font-weight: 800; letter-spacing: -2px; }
+  #problema .title span { position: absolute; left: 0; right: 0; top: 0; }
+  #problema .doc { position: absolute; width: 330px; padding: 22px 24px; border-radius: 18px; background: var(--surface);
+    border: 1px solid var(--line); box-shadow: 0 30px 60px rgba(0,0,0,.45); font-size: 25px; font-weight: 600; line-height: 1.25;
+    animation-name: fly-in, dim, converge; animation-duration: 1s, .7s, 1.1s; }
+  #problema .doc small { display: block; font-size: 18px; font-weight: 400; color: var(--ink2); margin-top: 8px; }
+  #problema .doc i { display: block; width: 46px; height: 6px; border-radius: 3px; background: var(--red2); margin-bottom: 14px; }
+  @keyframes fly-in { from { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--r0)) scale(.7); filter: blur(8px); }
+                      to { opacity: 1; transform: rotate(var(--r)); filter: blur(0); } }
+  @keyframes dim { to { opacity: .14; filter: blur(3px); } }
+  @keyframes converge { to { left: 795px; top: 575px; transform: rotate(0) scale(.15); opacity: 0; filter: blur(0); } }
+  #problema .chat { position: absolute; left: 540px; right: 540px; top: 330px; }
+  #problema .bubble { padding: 22px 28px; border-radius: 22px; font-size: 32px; line-height: 1.35; }
+  #problema .bubble.user { margin-left: auto; width: fit-content; background: #3a1c22; border-radius: 22px 22px 6px 22px; }
+  #problema .bubble.bot { position: relative; margin-top: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 22px 22px 22px 6px; }
+  #problema .bubble.bot small { display: block; font-size: 20px; color: var(--ink2); margin-bottom: 8px; }
+  #problema .stamp { position: absolute; right: -26px; top: -30px; padding: 10px 22px; border: 4px solid var(--red2); border-radius: 12px;
+    color: var(--red2); font-size: 34px; font-weight: 800; letter-spacing: 3px; transform: rotate(-8deg); background: rgba(18,21,26,.85);
+    opacity: 0; animation-name: stamp; animation-duration: .45s; animation-timing-function: cubic-bezier(.16,1,.3,1) !important; }
+  @keyframes stamp { from { opacity: 0; transform: rotate(-8deg) scale(2.2); } to { opacity: 1; transform: rotate(-8deg) scale(1); } }
+  #problema .note { margin-top: 16px; text-align: center; font-size: 20px; color: var(--ink2); }
+  #problema .ask { position: absolute; left: 460px; right: 460px; top: 560px; height: 110px; border-radius: 26px;
+    background: var(--surface); border: 2px solid var(--line); display: flex; align-items: center; padding: 0 40px;
+    font-size: 36px; color: var(--ink2); opacity: 0; animation-name: rise, glow-ring; animation-duration: .8s, 1.2s; }
+  #problema .ask .caret { width: 4px; height: 46px; background: var(--red2); margin-left: 8px; animation: blink 1s steps(2) infinite; }
+  @keyframes glow-ring { 0% { box-shadow: 0 0 0 0 rgba(224,86,106,.6); border-color: var(--red2); } 100% { box-shadow: 0 0 0 40px rgba(224,86,106,0); border-color: var(--red2); } }
+  #problema .cite { position: absolute; left: 0; right: 0; top: 712px; display: flex; justify-content: center; }
+  #problema .cite div { display: flex; align-items: center; gap: 18px; padding: 16px 26px; border-radius: 16px; background: var(--surface);
+    border: 1px solid var(--line); font-size: 27px; }
+  #problema .cite b { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: rgba(224,86,106,.18);
+    color: var(--red2); font-size: 24px; }
+  #problema .cite span { color: var(--ink2); }
+
+  /* ---------- cómo funciona ---------- */
+  #flujo svg.wires { position: absolute; inset: 0; }
+  #flujo .wire { fill: none; stroke: var(--line); stroke-width: 4; stroke-dasharray: 900; stroke-dashoffset: 900; animation-name: draw; animation-duration: 1s; }
+  #flujo .pulse { fill: var(--red2); filter: drop-shadow(0 0 10px var(--red2)); opacity: 0; animation-name: travel; animation-duration: 1.1s; animation-timing-function: cubic-bezier(.45,0,.2,1) !important; }
+  #flujo .pulse { animation-fill-mode: forwards; }
+  @keyframes travel { 0% { offset-distance: 0%; opacity: 1; } 100% { offset-distance: 100%; opacity: 1; } }
+  #flujo .node { position: absolute; padding: 26px 34px; border-radius: 22px; background: var(--surface); border: 2px solid var(--line);
+    font-size: 34px; font-weight: 600; box-shadow: 0 24px 50px rgba(0,0,0,.4); }
+  #flujo .node small { display: block; font-size: 23px; font-weight: 400; color: var(--ink2); margin-top: 6px; }
+  #flujo .node small.extra { color: var(--ink); }
+  #flujo .q { left: 110px; top: 470px; width: 420px; border-radius: 22px 22px 6px 22px; background: #3a1c22; border-color: transparent; font-weight: 400; }
+  #flujo .router { left: 670px; top: 455px; width: 370px; text-align: center; border-color: var(--red2); opacity: 0; animation-name: rise, ping; animation-duration: .8s, 1s; }
+  @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(224,86,106,.55); } 100% { box-shadow: 0 0 0 46px rgba(224,86,106,0); } }
+  #flujo .r1 { left: 1240px; top: 170px; width: 590px; border-color: var(--doc); }
+  #flujo .r2 { left: 1240px; top: 470px; width: 590px; border-color: var(--tool); }
+  #flujo .r3 { left: 1240px; top: 750px; width: 590px; }
+  #flujo .head { position: absolute; left: 110px; top: 110px; font-size: 64px; font-weight: 800; letter-spacing: -2px; }
+  #flujo .head small { display: block; font-size: 30px; font-weight: 400; letter-spacing: 0; color: var(--ink2); margin-top: 10px; }
+  #flujo .foot { position: absolute; left: 110px; bottom: 80px; font-size: 32px; color: var(--ink2); }
+  #flujo .foot b { color: var(--ink); }
+
+  /* ---------- resultados ---------- */
+  .head { position: absolute; left: 160px; top: 140px; font-size: 64px; font-weight: 800; letter-spacing: -2px; }
+  #resultados .grid, #limites .grid { position: absolute; left: 160px; right: 160px; top: 330px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 36px; }
+  #limites .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .card { padding: 40px 36px; border-radius: 26px; background: var(--surface); border: 1px solid var(--line); }
+  .num { font-variant-numeric: tabular-nums; font-size: 120px; font-weight: 800; letter-spacing: -4px; color: var(--red2); line-height: 1; }
+  .count { counter-reset: n var(--n); animation-duration: 1.5s; }
+  .count::before { content: counter(n); }
+  .lbl { font-size: 29px; color: var(--ink2); margin-top: 18px; line-height: 1.3; }
+  @keyframes count66 { from { --n: 0; } to { --n: 66; } }
+  @keyframes count55 { from { --n: 0; } to { --n: 55; } }
+  @keyframes count12 { from { --n: 0; } to { --n: 12; } }
+  #resultados .note { position: absolute; left: 160px; right: 160px; bottom: 150px; display: flex; align-items: center; gap: 34px;
+    padding: 30px 36px; border-radius: 26px; border: 1px solid var(--line); }
+  #resultados .note .num { font-size: 88px; }
+  #resultados .note p { font-size: 32px; color: var(--ink2); line-height: 1.35; }
+  #resultados .note b { color: var(--ink); }
+
+  /* ---------- evolución ---------- */
+  #evolucion .head { top: 120px; }
+  #evolucion .sub { position: absolute; left: 160px; top: 215px; font-size: 30px; color: var(--ink2); }
+  #evolucion .rows { position: absolute; left: 160px; right: 160px; top: 330px; display: grid; gap: 54px; }
+  #evolucion .row { display: grid; grid-template-columns: 380px 1fr; align-items: center; gap: 30px; }
+  #evolucion .name { font-size: 36px; font-weight: 600; }
+  #evolucion .name small { display: block; font-size: 22px; font-weight: 400; color: var(--ink2); margin-top: 4px; }
+  #evolucion .track { position: relative; height: 64px; border-radius: 14px; background: rgba(231,234,240,.06); }
+  #evolucion .bar { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 14px; width: 0; animation-name: grow; animation-duration: 1.2s;
+    display: flex; align-items: center; justify-content: flex-end; font-size: 28px; font-weight: 800; white-space: nowrap; }
+  #evolucion .bar.a { background: #3a404b; color: var(--ink2); }
+  #evolucion .bar.b { background: linear-gradient(90deg, #8a1527, var(--red2)); color: #fff; overflow: hidden; }
+  #evolucion .bar span { margin-right: 18px; }
+  @keyframes grow { to { width: var(--w); } }
+  #evolucion .legend { position: absolute; left: 160px; bottom: 110px; display: flex; gap: 46px; font-size: 28px; color: var(--ink2); }
+  #evolucion .legend i { display: inline-block; width: 26px; height: 26px; border-radius: 7px; vertical-align: -4px; margin-right: 12px; }
+
+  /* ---------- límites ---------- */
+  #limites .num { font-size: 96px; color: var(--ink); }
+  #limites .foot { position: absolute; left: 160px; bottom: 150px; font-size: 32px; color: var(--ink2); }
+  #limites .foot b { color: var(--ink); }
+
+  /* ---------- cierre ---------- */
+  #cierre .center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+  #cierre .logo { width: 170px; height: 170px; margin: 0 auto 26px; animation-name: pop; animation-duration: .9s; }
+  #cierre h1 { font-size: 120px; font-weight: 800; letter-spacing: -4px; }
+  #cierre .chips { display: flex; gap: 18px; justify-content: center; margin-top: 34px; }
+  #cierre .chips span { padding: 14px 30px; border: 1px solid var(--line); border-radius: 999px; font-size: 32px; background: var(--surface); }
+  #cierre .url { font-size: 40px; color: var(--red2); margin-top: 34px; }
+  #cierre .tech { font-size: 26px; color: var(--ink2); margin-top: 26px; letter-spacing: .5px; }
+  #cierre .by { font-size: 28px; color: var(--ink2); margin-top: 16px; }
+  #cierre .thanks { font-family: "Source Serif 4", Georgia, serif; font-style: italic; font-size: 44px; margin-top: 34px; }
+</style>
+</head>
+<body>
+<div class="dots"></div><div class="glow"></div>
+
+<!-- Apertura · bloque de audio 01 -->
+<section class="scene" id="hook">
+  <div class="lines-wrap" data-d="6.45"><div class="lines">
+    <span class="rise" data-d="0.7">13 documentos oficiales.</span>
+    <span class="rise" data-d="2.72">Tablas de matrícula.</span>
+    <span class="rise" data-d="3.8">Planes de estudio.</span>
+    <span class="rise" data-d="4.75">1 calendario publicado como imagen.</span>
+  </div></div>
+  <div class="brand"><div>
+    <div class="brand-inner">
+      <svg class="logo" viewBox="0 0 256 256">
+        <path class="frame drawn" data-d="6.6" d="M128 24 C150 74 182 106 232 128 C182 150 150 182 128 232 C106 182 74 150 24 128 C74 106 106 74 128 24Z"/>
+        <path class="needle-n" data-d="7.0" d="M128 72 L146 128 L128 118 L110 128 Z"/>
+        <path class="needle-s" data-d="7.2" d="M128 184 L146 128 L128 138 L110 128 Z"/>
+        <circle class="gap" data-d="7.2" cx="128" cy="128" r="14"/><circle class="dot" data-d="7.2" cx="128" cy="128" r="8"/>
+      </svg>
+      <div>
+        <div class="word"><b data-d="7.0">E</b><b data-d="7.06">c</b><b data-d="7.12">i</b><b class="r" data-d="7.3">G</b><b class="r" data-d="7.36">u</b><b class="r" data-d="7.42">í</b><b class="r" data-d="7.48">a</b></div>
+        <div class="tag rise" data-d="7.9">Asistente académico de la Escuela Colombiana de Ingeniería</div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- Problema · bloque 01 -->
+<section class="scene" id="problema">
+  <div class="title">
+    <span class="rise-out" data-d="10.3,15.1">La respuesta está repartida en…</span>
+    <span class="rise-out" data-d="15.45,19.9">Un chatbot genérico no los conoce…</span>
+    <span class="rise" data-d="20.3">EciGuía responde solo con documentos oficiales</span>
+  </div>
+  <div class="doc" data-d="10.55,15.3,20.25" style="left:120px;top:300px;--r:-6deg;--r0:-30deg;--dx:-400px;--dy:-80px"><i></i>Reglamento de Prácticas<small>julio de 2026</small></div>
+  <div class="doc" data-d="10.68,15.33,20.28" style="left:500px;top:260px;--r:4deg;--r0:20deg;--dx:-200px;--dy:-300px"><i></i>Trabajos Dirigidos<small>mayo de 2026</small></div>
+  <div class="doc" data-d="10.81,15.36,20.31" style="left:880px;top:300px;--r:-3deg;--r0:-15deg;--dx:0px;--dy:-360px"><i></i>Movilidad Estudiantil<small>mayo de 2026</small></div>
+  <div class="doc" data-d="10.94,15.39,20.34" style="left:1260px;top:250px;--r:5deg;--r0:25deg;--dx:250px;--dy:-300px"><i></i>Calendario 2027<small>publicado como imagen</small></div>
+  <div class="doc" data-d="11.07,15.42,20.37" style="left:1500px;top:470px;--r:-4deg;--r0:-25deg;--dx:400px;--dy:0px"><i></i>Matrícula 2027<small>resolución con tablas</small></div>
+  <div class="doc" data-d="11.2,15.45,20.4" style="left:200px;top:520px;--r:3deg;--r0:30deg;--dx:-400px;--dy:200px"><i></i>Créditos adicionales<small>acuerdo escaneado</small></div>
+  <div class="doc" data-d="11.33,15.48,20.43" style="left:600px;top:500px;--r:-5deg;--r0:-20deg;--dx:-150px;--dy:300px"><i></i>Líneas de énfasis<small>reglamento en PDF</small></div>
+  <div class="doc" data-d="11.46,15.51,20.46" style="left:1080px;top:520px;--r:6deg;--r0:20deg;--dx:150px;--dy:300px"><i></i>Plan de estudios<small>malla en tabla</small></div>
+  <div class="chat rise-out" data-d="16.0,19.9">
+    <div class="bubble user">¿Cuántas faltas puedo tener en una materia?</div>
+    <div class="bubble bot"><small>Chatbot genérico</small>Puedes faltar hasta al 20 % de las clases de cada materia.
+      <div class="stamp" data-d="18.05">INVENTADO</div></div>
+    <div class="note">Ejemplo ilustrativo: ese dato no está en los documentos oficiales.</div>
+  </div>
+  <div class="ask" data-d="21.0,21.7">¿La práctica puede ser de medio tiempo?<span class="caret"></span></div>
+  <div class="cite"><div class="rise" data-d="23.75"><b>1</b>Reglamento de Prácticas Profesionales<span>· Artículo 14 · pág. 11</span></div></div>
+</section>
+
+<!-- Cómo funciona · bloque 02 -->
+<section class="scene" id="flujo">
+  <div class="head rise" data-d="0.2">Un agente hecho con LangGraph<small>cada pregunta sigue un camino distinto</small></div>
+  <svg class="wires" viewBox="0 0 1920 1080">
+    <path class="wire" data-d="2.9" d="M530 525 L670 525"/>
+    <path class="wire" data-d="8.8" d="M1040 525 C1140 525 1140 250 1240 250"/>
+    <path class="wire" data-d="16.7" d="M1040 525 L1240 525"/>
+    <path class="wire" data-d="21.6" d="M1040 525 C1140 525 1140 810 1240 810"/>
+    <circle class="pulse" r="9" data-d="3.1" style="offset-path:path('M530 525 L670 525')"/>
+    <circle class="pulse" r="9" data-d="9.0" style="offset-path:path('M1040 525 C1140 525 1140 250 1240 250')"/>
+    <circle class="pulse" r="9" data-d="16.9" style="offset-path:path('M1040 525 L1240 525')"/>
+    <circle class="pulse" r="9" data-d="21.8" style="offset-path:path('M1040 525 C1140 525 1140 810 1240 810')"/>
+  </svg>
+  <div class="node q rise" data-d="2.3">¿La práctica puede ser de medio tiempo?</div>
+  <div class="node router" data-d="3.4,7.1">Router<small>Qwen 2.5 · local en Ollama</small></div>
+  <div class="node r1 rise" data-d="9.15">Reglamentos · RAG<small>embeddings en una base vectorial (Chroma)</small><small class="extra rise" data-d="14.6">redacta citando artículo y página</small></div>
+  <div class="node r2 rise" data-d="17.05">Herramientas MCP<small>calendario, matrícula 2027, plan de estudios</small></div>
+  <div class="node r3 rise" data-d="21.95">Fuera de alcance<small>lo dice y no inventa</small></div>
+  <div class="foot rise" data-d="23.5">Todo corre <b>en un portátil</b>, sin enviar datos a nadie.</div>
+</section>
+
+<!-- Resultados · bloque 07 -->
+<section class="scene" id="resultados">
+  <div class="head rise" data-d="0.0">¿Funciona? Lo medí.</div>
+  <div class="grid">
+    <div class="card rise" data-d="1.85"><div class="num count" style="animation-name:count66" data-d="2.3"></div><div class="lbl">preguntas de respuesta conocida</div></div>
+    <div class="card rise" data-d="4.75"><div class="num"><span class="count" style="animation-name:count55" data-d="5.4"></span>/55</div><div class="lbl">respuestas correctas, revisadas a mano</div></div>
+    <div class="card rise" data-d="9.15"><div class="num"><span class="count" style="animation-name:count12" data-d="9.3"></span>/12</div><div class="lbl">trampas rechazadas sin inventar</div></div>
+    <div class="card rise" data-d="10.45"><div class="num">0</div><div class="lbl">regresiones al pasar de 6 a 13 documentos</div></div>
+  </div>
+  <div class="note rise" data-d="13.4"><div class="num">97 %</div><p>de acierto del <b>router</b> en 32 preguntas que no se usaron para escribir los prompts</p></div>
+</section>
+
+<!-- Evolución · bloque 07 -->
+<section class="scene" id="evolucion">
+  <div class="head rise" data-d="17.8">De la primera versión a la final</div>
+  <div class="sub rise" data-d="18.0">Mismo set de 40 preguntas, medido en cada iteración</div>
+  <div class="rows">
+    <div class="row rise" data-d="18.2"><div class="name">Ruteo correcto<small>elige reglamento, herramienta o rechazo</small></div>
+      <div class="track"><div class="bar a" data-d="18.9" style="--w:68%"><span class="rise" data-d="19.7">68 %</span></div><div class="bar b" data-d="23.1" style="--w:100%"><span class="rise" data-d="24.1">100 %</span></div></div></div>
+    <div class="row rise" data-d="18.35"><div class="name">Herramienta correcta<small>fechas, valores, plan de estudios</small></div>
+      <div class="track"><div class="bar a" data-d="19.1" style="--w:4%"><span class="rise" data-d="21.5" style="position:absolute;left:60px">0 %</span></div><div class="bar b" data-d="23.3" style="--w:100%"><span class="rise" data-d="24.3">100 %</span></div></div></div>
+    <div class="row rise" data-d="18.5"><div class="name">Respuesta correcta<small>juez LLM + revisión manual</small></div>
+      <div class="track"><div class="bar a" data-d="19.3" style="--w:82%"><span class="rise" data-d="20.1">82 %</span></div><div class="bar b" data-d="23.5" style="--w:100%"><span class="rise" data-d="24.5">100 %</span></div></div></div>
+  </div>
+  <div class="legend rise" data-d="24.4"><span><i style="background:#3a404b"></i>Línea base (corrida 1)</span><span><i style="background:var(--red2)"></i>Versión final (router V3 + prompt V3)</span><span>Latencia mediana: <b style="color:var(--ink)">12,5 s</b></span></div>
+</section>
+
+<!-- Límites · bloque 07 -->
+<section class="scene" id="limites">
+  <div class="head rise" data-d="26.15">Sus límites</div>
+  <div class="grid">
+    <div class="card rise" data-d="27.9"><div class="num">7B</div><div class="lbl">modelo pequeño: 7 mil millones de parámetros (Qwen 2.5)</div></div>
+    <div class="card rise" data-d="31.15"><div class="num">~12 s</div><div class="lbl">por respuesta en un portátil (mediana de 12,5 s)</div></div>
+    <div class="card rise" data-d="33.95"><div class="num">13</div><div class="lbl">documentos: solo sabe lo que está en ellos</div></div>
+  </div>
+  <div class="foot rise" data-d="34.9">Por eso, cuando no lo sabe, lo dice <b>en vez de inventar</b>.</div>
+</section>
+
+<!-- Cierre · bloque 07 -->
+<section class="scene" id="cierre">
+  <div class="center"><div>
+    <svg class="logo" viewBox="0 0 256 256" data-d="35.9">
+      <path class="frame" d="M128 24 C150 74 182 106 232 128 C182 150 150 182 128 232 C106 182 74 150 24 128 C74 106 106 74 128 24Z"/>
+      <path class="needle-n" data-d="36.1" d="M128 72 L146 128 L128 118 L110 128 Z"/>
+      <path class="needle-s" data-d="36.1" d="M128 184 L146 128 L128 138 L110 128 Z"/>
+      <circle class="gap" data-d="36.1" cx="128" cy="128" r="14"/><circle class="dot" data-d="36.1" cx="128" cy="128" r="8"/>
+    </svg>
+    <h1 class="rise" data-d="36.0">EciGuía</h1>
+    <div class="chips"><span class="rise" data-d="36.05">Código</span><span class="rise" data-d="36.7">Notebook</span><span class="rise" data-d="37.2">Pruebas</span><span class="rise" data-d="37.8">Evaluación</span></div>
+    <div class="url rise" data-d="38.5">github.com/MarlioCharryECI/eciguia-gelm</div>
+    <div class="tech rise" data-d="39.3">RAG · LangGraph · MCP · Ollama · 100 % local</div>
+    <div class="by rise" data-d="39.6">Marlio José Charry Espitia · IA Generativa 2026-2</div>
+    <div class="thanks rise" data-d="41.0">Gracias.</div>
+  </div></div>
+</section>
+
+<script>
+  const q = new URLSearchParams(location.search);
+  const escena = document.getElementById(q.get("escena") || "hook");
+  const L = parseFloat(q.get("L") || "0");
+  escena.classList.add("on");
+  for (const e of escena.querySelectorAll("[data-d]"))
+    e.style.animationDelay = e.dataset.d.split(",").map((x) => (parseFloat(x) + L).toFixed(3) + "s").join(", ");
+</script>
+</body>
+</html>

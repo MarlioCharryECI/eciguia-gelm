@@ -27,6 +27,9 @@ data/descartados/
 docs/video/raw/
 docs/video/audio/
 docs/video/final/
+docs/video/motion/render/
+# Notas de trabajo locales (planes internos), fuera del repositorio
+notas_locales/
 
 # Notebooks y apps
 .ipynb_checkpoints/
